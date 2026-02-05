@@ -1,12 +1,26 @@
 {
   "name": "thread-mcp",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "MCP server for saving AI conversation threads to local files or remote servers",
   "type": "module",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "bin": {
     "thread-mcp": "dist/index.js"
   },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yugui923/thread-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yugui923/thread-mcp/issues"
+  },
+  "homepage": "https://github.com/yugui923/thread-mcp#readme",
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
@@ -31,7 +45,7 @@
     "llm"
   ],
   "author": "",
-  "license": "MIT",
+  "license": "GPL-3.0",
   "engines": {
     "node": ">=22.0.0"
   },

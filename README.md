@@ -486,7 +486,7 @@ thread-mcp/
 
 ## License
 
-MIT
+GPL-3.0
 
 ## Contributing
 
