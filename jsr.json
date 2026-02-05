@@ -1,0 +1,14 @@
+{
+  "name": "@yug/thread-mcp",
+  "version": "1.0.1",
+  "exports": {
+    ".": "./src/server.ts",
+    "./types": "./src/types.ts",
+    "./tools": "./src/tools/index.ts",
+    "./formatters": "./src/formatters/index.ts",
+    "./storage": "./src/storage/index.ts"
+  },
+  "publish": {
+    "include": ["src/**/*.ts", "README.md", "LICENSE"]
+  }
+}
