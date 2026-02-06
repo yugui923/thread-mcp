@@ -58,6 +58,52 @@ Or if installed from source:
 }
 ```
 
+### Configure with Claude Code / VS Code
+
+Add a `.mcp.json` file to your project root:
+
+```json
+{
+  "mcpServers": {
+    "thread-mcp": {
+      "command": "npx",
+      "args": ["thread-mcp"],
+      "env": {
+        "THREAD_MCP_STORAGE_DIR": "./thread-mcp"
+      }
+    }
+  }
+}
+```
+
+See `.mcp.json.example` and `claude_desktop_config.json.example` for templates.
+
+## Configuration
+
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `THREAD_MCP_STORAGE_DIR` | `~/.thread-mcp` | Default directory for storing conversation threads |
+
+Set environment variables in your MCP config file's `env` section:
+
+```json
+{
+  "mcpServers": {
+    "thread-mcp": {
+      "command": "npx",
+      "args": ["thread-mcp"],
+      "env": {
+        "THREAD_MCP_STORAGE_DIR": "/custom/path/to/threads"
+      }
+    }
+  }
+}
+```
+
+**Note:** Relative paths (e.g., `./thread-mcp`) are resolved from the working directory where the MCP server is launched.
+
 ## Available Tools
 
 ### `save_thread`

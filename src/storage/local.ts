@@ -153,9 +153,9 @@ let defaultStorage: LocalStorage | null = null;
 
 export function getDefaultLocalStorage(): LocalStorage {
   if (!defaultStorage) {
-    defaultStorage = new LocalStorage({
-      baseDir: join(homedir(), ".thread-mcp"),
-    });
+    const baseDir =
+      process.env.THREAD_MCP_STORAGE_DIR || join(homedir(), ".thread-mcp");
+    defaultStorage = new LocalStorage({ baseDir });
   }
   return defaultStorage;
 }
