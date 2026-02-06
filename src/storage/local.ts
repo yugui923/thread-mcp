@@ -1,4 +1,5 @@
 import { mkdir, readFile, writeFile, unlink } from "node:fs/promises";
+import { homedir } from "node:os";
 import { join } from "node:path";
 import type {
   Conversation,
@@ -152,9 +153,8 @@ let defaultStorage: LocalStorage | null = null;
 
 export function getDefaultLocalStorage(): LocalStorage {
   if (!defaultStorage) {
-    const homeDir = process.env.HOME || process.env.USERPROFILE || ".";
     defaultStorage = new LocalStorage({
-      baseDir: join(homeDir, ".thread-mcp"),
+      baseDir: join(homedir(), ".thread-mcp"),
     });
   }
   return defaultStorage;

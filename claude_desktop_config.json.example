@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "thread-mcp": {
+      "command": "npx",
+      "args": ["thread-mcp"],
+      "env": {
+        "THREAD_MCP_STORAGE_DIR": "~/.thread-mcp"
+      }
+    }
+  }
+}
