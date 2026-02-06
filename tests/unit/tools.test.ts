@@ -4,9 +4,18 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { saveThread, SaveThreadInputSchema } from "../../src/tools/save-thread.js";
 import { findThreads, FindThreadsInputSchema } from "../../src/tools/find-threads.js";
-import { updateThread, UpdateThreadInputSchema } from "../../src/tools/update-thread.js";
-import { deleteThread, DeleteThreadInputSchema } from "../../src/tools/delete-thread.js";
-import { resumeThread, ResumeThreadInputSchema } from "../../src/tools/resume-thread.js";
+import {
+  updateThread,
+  UpdateThreadInputSchema,
+} from "../../src/tools/update-thread.js";
+import {
+  deleteThread,
+  DeleteThreadInputSchema,
+} from "../../src/tools/delete-thread.js";
+import {
+  resumeThread,
+  ResumeThreadInputSchema,
+} from "../../src/tools/resume-thread.js";
 
 describe("Tool Input Schemas", () => {
   describe("SaveThreadInputSchema", () => {
@@ -30,8 +39,10 @@ describe("Tool Input Schemas", () => {
       };
 
       const result = SaveThreadInputSchema.parse(input);
-      expect(result.destination).toBe("local");
-      expect(result.format).toBe("markdown");
+      // destination and format are now optional (defaults from env vars)
+      expect(result.destination).toBeUndefined();
+      expect(result.format).toBeUndefined();
+      // These still have schema defaults
       expect(result.includeMetadata).toBe(true);
       expect(result.includeTimestamps).toBe(true);
     });
@@ -57,7 +68,9 @@ describe("Tool Input Schemas", () => {
 
     it("should apply default values", () => {
       const result = FindThreadsInputSchema.parse({});
-      expect(result.source).toBe("local");
+      // source is now optional (defaults from env vars)
+      expect(result.source).toBeUndefined();
+      // These still have schema defaults
       expect(result.includeContent).toBe(false);
       expect(result.includeRelevanceInfo).toBe(true);
       expect(result.limit).toBe(10);
@@ -198,7 +211,7 @@ describe("Tool Handlers", () => {
           includeMetadata: true,
           includeTimestamps: true,
         }),
-      ).rejects.toThrow("remoteUrl is required");
+      ).rejects.toThrow("Remote URL is required");
     });
   });
 
@@ -500,9 +513,9 @@ describe("Tool Handlers", () => {
     });
 
     it("should require id or title", async () => {
-      await expect(
-        deleteThread({ outputDir: testDir }),
-      ).rejects.toThrow("Either 'id' or 'title' must be provided");
+      await expect(deleteThread({ outputDir: testDir })).rejects.toThrow(
+        "Either 'id' or 'title' must be provided",
+      );
     });
   });
 
@@ -594,9 +607,9 @@ describe("Tool Handlers", () => {
     });
 
     it("should require a lookup method", async () => {
-      await expect(
-        resumeThread({ outputDir: testDir }),
-      ).rejects.toThrow("One of 'id', 'title', or 'titleContains' must be provided");
+      await expect(resumeThread({ outputDir: testDir })).rejects.toThrow(
+        "One of 'id', 'title', or 'titleContains' must be provided",
+      );
     });
   });
 });

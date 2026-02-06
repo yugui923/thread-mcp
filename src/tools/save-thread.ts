@@ -1,8 +1,15 @@
 import { z } from "zod";
 import type { Conversation, SaveOptions } from "../types.js";
-import { OutputFormatSchema } from "../types.js";
-import { getDefaultLocalStorage, createLocalStorage } from "../storage/local.js";
+import { createLocalStorage } from "../storage/local.js";
 import { createRemoteStorage } from "../storage/remote.js";
+import {
+  resolveFormat,
+  resolveSource,
+  resolveStorageDir,
+  resolveRemoteUrl,
+  resolveApiKey,
+  resolveHeaders,
+} from "../config.js";
 
 export const SaveThreadInputSchema = z.object({
   title: z.string().describe("Title for the thread"),
@@ -17,11 +24,14 @@ export const SaveThreadInputSchema = z.object({
     .describe("Array of messages in the thread"),
   destination: z
     .enum(["local", "remote"])
-    .default("local")
-    .describe("Where to save: 'local' for filesystem, 'remote' for server"),
-  format: OutputFormatSchema.default("markdown").describe(
-    "Output format: 'markdown' or 'json'",
-  ),
+    .optional()
+    .describe(
+      "Where to save: 'local' for filesystem, 'remote' for server (default from THREAD_MCP_DEFAULT_SOURCE)",
+    ),
+  format: z
+    .enum(["markdown", "json"])
+    .optional()
+    .describe("Output format: 'markdown' or 'json' (default from THREAD_MCP_FORMAT)"),
   sourceApp: z
     .string()
     .optional()
@@ -33,19 +43,24 @@ export const SaveThreadInputSchema = z.object({
   outputDir: z
     .string()
     .optional()
-    .describe("Custom output directory for local storage (defaults to ~/.thread-mcp)"),
+    .describe("Custom output directory (default from THREAD_MCP_STORAGE_DIR)"),
 
   // Remote options
   remoteUrl: z
     .string()
     .url()
     .optional()
-    .describe("Base URL of the remote server (required if destination is 'remote')"),
-  apiKey: z.string().optional().describe("API key for remote authentication"),
+    .describe("Base URL of the remote server (default from THREAD_MCP_REMOTE_URL)"),
+  apiKey: z
+    .string()
+    .optional()
+    .describe("API key for remote authentication (default from THREAD_MCP_API_KEY)"),
   headers: z
     .record(z.string())
     .optional()
-    .describe("Additional headers for remote requests"),
+    .describe(
+      "Additional headers for remote requests (merged with THREAD_MCP_REMOTE_HEADERS)",
+    ),
 
   // Output options
   includeMetadata: z
@@ -61,6 +76,9 @@ export const SaveThreadInputSchema = z.object({
 export type SaveThreadInput = z.infer<typeof SaveThreadInputSchema>;
 
 export async function saveThread(input: SaveThreadInput) {
+  const destination = resolveSource(input.destination);
+  const format = resolveFormat(input.format);
+
   const conversation: Conversation = {
     id: crypto.randomUUID(),
     metadata: {
@@ -78,20 +96,24 @@ export async function saveThread(input: SaveThreadInput) {
   };
 
   const options: SaveOptions = {
-    format: input.format,
+    format,
     includeMetadata: input.includeMetadata,
     includeTimestamps: input.includeTimestamps,
   };
 
-  if (input.destination === "remote") {
-    if (!input.remoteUrl) {
-      throw new Error("remoteUrl is required when destination is 'remote'");
+  if (destination === "remote") {
+    const remoteUrl = resolveRemoteUrl(input.remoteUrl);
+    if (!remoteUrl) {
+      throw new Error(
+        "Remote URL is required when destination is 'remote'. " +
+          "Set THREAD_MCP_REMOTE_URL or provide remoteUrl parameter.",
+      );
     }
 
     const storage = createRemoteStorage({
-      url: input.remoteUrl,
-      apiKey: input.apiKey,
-      headers: input.headers,
+      url: remoteUrl,
+      apiKey: resolveApiKey(input.apiKey),
+      headers: resolveHeaders(input.headers),
     });
 
     const result = await storage.save(conversation, options);
@@ -109,9 +131,8 @@ export async function saveThread(input: SaveThreadInput) {
   }
 
   // Local storage
-  const storage = input.outputDir
-    ? createLocalStorage(input.outputDir)
-    : getDefaultLocalStorage();
+  const storageDir = resolveStorageDir(input.outputDir);
+  const storage = createLocalStorage(storageDir);
 
   const result = await storage.save(conversation, options);
 

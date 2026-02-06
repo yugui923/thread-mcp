@@ -4,7 +4,9 @@
       "command": "npx",
       "args": ["thread-mcp"],
       "env": {
-        "THREAD_MCP_STORAGE_DIR": "./thread-mcp"
+        "THREAD_MCP_STORAGE_DIR": "./thread-mcp",
+        "THREAD_MCP_FORMAT": "markdown",
+        "THREAD_MCP_DEFAULT_SOURCE": "local"
       }
     }
   }

@@ -1,8 +1,14 @@
 import { z } from "zod";
 import type { Conversation, SaveOptions, Message } from "../types.js";
-import { OutputFormatSchema } from "../types.js";
-import { getDefaultLocalStorage, createLocalStorage } from "../storage/local.js";
+import { createLocalStorage } from "../storage/local.js";
 import { createRemoteStorage } from "../storage/remote.js";
+import {
+  resolveSource,
+  resolveStorageDir,
+  resolveRemoteUrl,
+  resolveApiKey,
+  resolveHeaders,
+} from "../config.js";
 
 export const UpdateThreadInputSchema = z.object({
   // Lookup (use one)
@@ -35,17 +41,37 @@ export const UpdateThreadInputSchema = z.object({
   newTags: z.array(z.string()).optional().describe("New tags (replaces existing)"),
   newSummary: z.string().optional().describe("New summary"),
 
-  // Source
+  // Source - no default, falls back to env var
   source: z
     .enum(["local", "remote"])
-    .default("local")
-    .describe("Source where thread is stored"),
-  outputDir: z.string().optional().describe("Custom directory for local storage"),
-  remoteUrl: z.string().url().optional().describe("Remote server URL"),
-  apiKey: z.string().optional().describe("API key for remote"),
-  headers: z.record(z.string()).optional().describe("Additional headers for remote"),
+    .optional()
+    .describe("Source where thread is stored (default from THREAD_MCP_DEFAULT_SOURCE)"),
+  outputDir: z
+    .string()
+    .optional()
+    .describe(
+      "Custom directory for local storage (default from THREAD_MCP_STORAGE_DIR)",
+    ),
+  remoteUrl: z
+    .string()
+    .url()
+    .optional()
+    .describe("Remote server URL (default from THREAD_MCP_REMOTE_URL)"),
+  apiKey: z
+    .string()
+    .optional()
+    .describe("API key for remote (default from THREAD_MCP_API_KEY)"),
+  headers: z
+    .record(z.string())
+    .optional()
+    .describe("Additional headers for remote (merged with THREAD_MCP_REMOTE_HEADERS)"),
 
-  format: OutputFormatSchema.optional().describe("Output format (keeps existing if not set)"),
+  format: z
+    .enum(["markdown", "json"])
+    .optional()
+    .describe(
+      "Output format (keeps existing if not set, or default from THREAD_MCP_FORMAT)",
+    ),
 });
 
 export type UpdateThreadInput = z.infer<typeof UpdateThreadInputSchema>;
@@ -72,20 +98,26 @@ export async function updateThread(input: UpdateThreadInput) {
     throw new Error("Either 'id' or 'title' must be provided to identify the thread");
   }
 
-  if (input.source === "remote" && !input.remoteUrl) {
-    throw new Error("remoteUrl is required when source is 'remote'");
+  const source = resolveSource(input.source);
+
+  if (source === "remote") {
+    const remoteUrl = resolveRemoteUrl(input.remoteUrl);
+    if (!remoteUrl) {
+      throw new Error(
+        "Remote URL is required when source is 'remote'. " +
+          "Set THREAD_MCP_REMOTE_URL or provide remoteUrl parameter.",
+      );
+    }
   }
 
   const storage =
-    input.source === "remote"
+    source === "remote"
       ? createRemoteStorage({
-          url: input.remoteUrl!,
-          apiKey: input.apiKey,
-          headers: input.headers,
+          url: resolveRemoteUrl(input.remoteUrl)!,
+          apiKey: resolveApiKey(input.apiKey),
+          headers: resolveHeaders(input.headers),
         })
-      : input.outputDir
-        ? createLocalStorage(input.outputDir)
-        : getDefaultLocalStorage();
+      : createLocalStorage(resolveStorageDir(input.outputDir));
 
   // Find the thread
   let threadId = input.id;
@@ -105,7 +137,7 @@ export async function updateThread(input: UpdateThreadInput) {
       return {
         success: false,
         error: `Thread with title '${input.title}' not found`,
-        source: input.source,
+        source,
       };
     }
   }
@@ -116,7 +148,7 @@ export async function updateThread(input: UpdateThreadInput) {
       success: false,
       error: `Thread with ID '${threadId}' not found`,
       id: threadId,
-      source: input.source,
+      source,
     };
   }
 
@@ -151,8 +183,11 @@ export async function updateThread(input: UpdateThreadInput) {
     messages: updatedMessages,
   };
 
+  // Use provided format, or keep original, falling back to env var if neither
+  const format = input.format ?? originalFormat;
+
   const options: SaveOptions = {
-    format: input.format ?? originalFormat,
+    format,
     includeMetadata: true,
     includeTimestamps: true,
   };
@@ -162,13 +197,15 @@ export async function updateThread(input: UpdateThreadInput) {
   const result = await storage.save(updated, options);
 
   const messagesAdded =
-    input.mode === "append" ? updatedMessages.length - existing.messages.length : updatedMessages.length;
+    input.mode === "append"
+      ? updatedMessages.length - existing.messages.length
+      : updatedMessages.length;
 
   return {
     success: true,
     id: result.id,
     title: updated.metadata.title,
-    source: input.source,
+    source,
     filePath: result.filePath,
     remoteUrl: result.remoteUrl,
     format: result.format,

@@ -1,20 +1,42 @@
 import { z } from "zod";
 import type { Conversation, SavedConversationInfo } from "../types.js";
-import { getDefaultLocalStorage, createLocalStorage } from "../storage/local.js";
+import { createLocalStorage } from "../storage/local.js";
 import { createRemoteStorage } from "../storage/remote.js";
+import {
+  resolveSource,
+  resolveStorageDir,
+  resolveRemoteUrl,
+  resolveApiKey,
+  resolveHeaders,
+} from "../config.js";
 
 export const FindThreadsInputSchema = z.object({
   // Lookup methods (use one)
   id: z.string().optional().describe("Get a specific thread by ID"),
   title: z.string().optional().describe("Find thread by exact title match"),
-  titleContains: z.string().optional().describe("Find threads with title containing this text"),
-  query: z.string().optional().describe("Search query (matches title, summary, and content)"),
+  titleContains: z
+    .string()
+    .optional()
+    .describe("Find threads with title containing this text"),
+  query: z
+    .string()
+    .optional()
+    .describe("Search query (matches title, summary, and content)"),
 
   // Filters
-  tags: z.array(z.string()).optional().describe("Filter by tags (must have ALL specified tags)"),
+  tags: z
+    .array(z.string())
+    .optional()
+    .describe("Filter by tags (must have ALL specified tags)"),
   sourceApp: z.string().optional().describe("Filter by source application"),
-  dateFrom: z.string().optional().describe("Filter threads created after this date (ISO format)"),
-  dateTo: z.string().optional().describe("Filter threads created before this date (ISO format)"),
+  dateFrom: z
+    .string()
+    .optional()
+    .describe("Filter threads created after this date (ISO format)"),
+  dateTo: z
+    .string()
+    .optional()
+    .describe("Filter threads created before this date (ISO format)"),
 
   // Output options
   includeContent: z
@@ -27,15 +49,30 @@ export const FindThreadsInputSchema = z.object({
     .describe("Include relevance scores and metadata"),
   limit: z.number().positive().default(10).describe("Maximum results to return"),
 
-  // Source
+  // Source - no default, falls back to env var
   source: z
     .enum(["local", "remote"])
-    .default("local")
-    .describe("Source to search"),
-  outputDir: z.string().optional().describe("Custom directory for local storage"),
-  remoteUrl: z.string().url().optional().describe("Remote server URL (required if source is 'remote')"),
-  apiKey: z.string().optional().describe("API key for remote"),
-  headers: z.record(z.string()).optional().describe("Additional headers for remote"),
+    .optional()
+    .describe("Source to search (default from THREAD_MCP_DEFAULT_SOURCE)"),
+  outputDir: z
+    .string()
+    .optional()
+    .describe(
+      "Custom directory for local storage (default from THREAD_MCP_STORAGE_DIR)",
+    ),
+  remoteUrl: z
+    .string()
+    .url()
+    .optional()
+    .describe("Remote server URL (default from THREAD_MCP_REMOTE_URL)"),
+  apiKey: z
+    .string()
+    .optional()
+    .describe("API key for remote (default from THREAD_MCP_API_KEY)"),
+  headers: z
+    .record(z.string())
+    .optional()
+    .describe("Additional headers for remote (merged with THREAD_MCP_REMOTE_HEADERS)"),
 });
 
 export type FindThreadsInput = z.infer<typeof FindThreadsInputSchema>;
@@ -147,17 +184,15 @@ function calculateRelevance(
   }
 
   // Recency bonus
-  const ageInDays = (Date.now() - new Date(info.savedAt).getTime()) / (1000 * 60 * 60 * 24);
+  const ageInDays =
+    (Date.now() - new Date(info.savedAt).getTime()) / (1000 * 60 * 60 * 24);
   if (ageInDays < 7) score += 10;
   else if (ageInDays < 30) score += 5;
 
   return { score, matchedFields: [...new Set(matchedFields)] };
 }
 
-function matchesFilters(
-  conversation: Conversation,
-  input: FindThreadsInput,
-): boolean {
+function matchesFilters(conversation: Conversation, input: FindThreadsInput): boolean {
   // Title exact match
   if (input.title && conversation.metadata.title !== input.title) {
     return false;
@@ -166,16 +201,24 @@ function matchesFilters(
   // Title contains
   if (
     input.titleContains &&
-    !conversation.metadata.title.toLowerCase().includes(input.titleContains.toLowerCase())
+    !conversation.metadata.title
+      .toLowerCase()
+      .includes(input.titleContains.toLowerCase())
   ) {
     return false;
   }
 
   // Date filters
-  if (input.dateFrom && new Date(conversation.metadata.createdAt) < new Date(input.dateFrom)) {
+  if (
+    input.dateFrom &&
+    new Date(conversation.metadata.createdAt) < new Date(input.dateFrom)
+  ) {
     return false;
   }
-  if (input.dateTo && new Date(conversation.metadata.createdAt) > new Date(input.dateTo)) {
+  if (
+    input.dateTo &&
+    new Date(conversation.metadata.createdAt) > new Date(input.dateTo)
+  ) {
     return false;
   }
 
@@ -208,20 +251,26 @@ function matchesFilters(
 }
 
 export async function findThreads(input: FindThreadsInput) {
-  if (input.source === "remote" && !input.remoteUrl) {
-    throw new Error("remoteUrl is required when source is 'remote'");
+  const source = resolveSource(input.source);
+
+  if (source === "remote") {
+    const remoteUrl = resolveRemoteUrl(input.remoteUrl);
+    if (!remoteUrl) {
+      throw new Error(
+        "Remote URL is required when source is 'remote'. " +
+          "Set THREAD_MCP_REMOTE_URL or provide remoteUrl parameter.",
+      );
+    }
   }
 
   const storage =
-    input.source === "remote"
+    source === "remote"
       ? createRemoteStorage({
-          url: input.remoteUrl!,
-          apiKey: input.apiKey,
-          headers: input.headers,
+          url: resolveRemoteUrl(input.remoteUrl)!,
+          apiKey: resolveApiKey(input.apiKey),
+          headers: resolveHeaders(input.headers),
         })
-      : input.outputDir
-        ? createLocalStorage(input.outputDir)
-        : getDefaultLocalStorage();
+      : createLocalStorage(resolveStorageDir(input.outputDir));
 
   // If looking up by ID, return single result
   if (input.id) {
@@ -230,7 +279,7 @@ export async function findThreads(input: FindThreadsInput) {
       return {
         found: false,
         id: input.id,
-        source: input.source,
+        source,
       };
     }
 
@@ -255,7 +304,8 @@ export async function findThreads(input: FindThreadsInput) {
     }
 
     if (input.includeRelevanceInfo && info) {
-      const ageInDays = (Date.now() - new Date(info.savedAt).getTime()) / (1000 * 60 * 60 * 24);
+      const ageInDays =
+        (Date.now() - new Date(info.savedAt).getTime()) / (1000 * 60 * 60 * 24);
       result.relevance = {
         score: 100,
         matchedFields: ["id"],
@@ -268,7 +318,7 @@ export async function findThreads(input: FindThreadsInput) {
 
     return {
       found: true,
-      source: input.source,
+      source,
       thread: result,
     };
   }
@@ -292,7 +342,8 @@ export async function findThreads(input: FindThreadsInput) {
       input.titleContains,
     );
 
-    const ageInDays = (Date.now() - new Date(info.savedAt).getTime()) / (1000 * 60 * 60 * 24);
+    const ageInDays =
+      (Date.now() - new Date(info.savedAt).getTime()) / (1000 * 60 * 60 * 24);
 
     const result: ThreadResult = {
       id: info.id,
@@ -331,7 +382,7 @@ export async function findThreads(input: FindThreadsInput) {
   }
 
   return {
-    source: input.source,
+    source,
     totalResults: results.length,
     filters: {
       query: input.query,

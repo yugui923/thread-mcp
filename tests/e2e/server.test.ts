@@ -55,9 +55,9 @@ describe("MCP Server", () => {
 
   describe("CallTool", () => {
     const getHandler = () =>
-      (server as unknown as { _requestHandlers: Map<string, Function> })._requestHandlers.get(
-        "tools/call",
-      );
+      (
+        server as unknown as { _requestHandlers: Map<string, Function> }
+      )._requestHandlers.get("tools/call");
 
     describe("save_thread", () => {
       it("should save a thread", async () => {
@@ -445,7 +445,10 @@ describe("MCP Server", () => {
               title: "Full Workflow Test",
               messages: [
                 { role: "user", content: "What is TypeScript?" },
-                { role: "assistant", content: "TypeScript is a typed superset of JavaScript." },
+                {
+                  role: "assistant",
+                  content: "TypeScript is a typed superset of JavaScript.",
+                },
               ],
               tags: ["typescript", "programming"],
               summary: "Discussion about TypeScript",

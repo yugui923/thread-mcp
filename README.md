@@ -82,11 +82,26 @@ See `.mcp.json.example` and `claude_desktop_config.json.example` for templates.
 
 ### Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `THREAD_MCP_STORAGE_DIR` | `~/.thread-mcp` | Default directory for storing conversation threads |
+Configure the MCP server with environment variables. These provide defaults that can be overridden per tool call.
 
-Set environment variables in your MCP config file's `env` section:
+| Variable                    | Default         | Description                                        |
+| --------------------------- | --------------- | -------------------------------------------------- |
+| `THREAD_MCP_STORAGE_DIR`    | `~/.thread-mcp` | Default directory for storing conversation threads |
+| `THREAD_MCP_FORMAT`         | `markdown`      | Default output format: `markdown` or `json`        |
+| `THREAD_MCP_DEFAULT_SOURCE` | `local`         | Default storage source: `local` or `remote`        |
+| `THREAD_MCP_REMOTE_URL`     | -               | Default remote server URL                          |
+| `THREAD_MCP_API_KEY`        | -               | API key for remote server authentication           |
+| `THREAD_MCP_REMOTE_HEADERS` | `{}`            | JSON-encoded default headers for remote requests   |
+
+### Precedence
+
+Configuration values are resolved in this order (highest to lowest priority):
+
+1. **Tool call parameter** - if explicitly provided in the request
+2. **Environment variable** - server-level configuration
+3. **Built-in default** - hardcoded fallback
+
+### Example Configuration
 
 ```json
 {
@@ -95,14 +110,23 @@ Set environment variables in your MCP config file's `env` section:
       "command": "npx",
       "args": ["thread-mcp"],
       "env": {
-        "THREAD_MCP_STORAGE_DIR": "/custom/path/to/threads"
+        "THREAD_MCP_STORAGE_DIR": "./threads",
+        "THREAD_MCP_FORMAT": "markdown",
+        "THREAD_MCP_DEFAULT_SOURCE": "local",
+        "THREAD_MCP_REMOTE_URL": "https://api.example.com",
+        "THREAD_MCP_API_KEY": "your-api-key",
+        "THREAD_MCP_REMOTE_HEADERS": "{\"X-Custom-Header\": \"value\"}"
       }
     }
   }
 }
 ```
 
-**Note:** Relative paths (e.g., `./thread-mcp`) are resolved from the working directory where the MCP server is launched.
+**Notes:**
+
+- Relative paths (e.g., `./threads`) are resolved from the working directory where the MCP server is launched
+- `THREAD_MCP_REMOTE_HEADERS` must be valid JSON
+- Tool call parameters merge with (and override) environment variable headers
 
 ## Available Tools
 
@@ -165,6 +189,7 @@ Find saved threads by ID, title, search query, or list all threads. Supports fil
 **Examples:**
 
 List all threads:
+
 ```json
 {
   "source": "local"
@@ -172,6 +197,7 @@ List all threads:
 ```
 
 Find by ID:
+
 ```json
 {
   "id": "abc123-def456"
@@ -179,6 +205,7 @@ Find by ID:
 ```
 
 Search with filters:
+
 ```json
 {
   "query": "Python debugging",
@@ -249,9 +276,7 @@ Update an existing thread by appending new messages. Find thread by ID or title.
 ```json
 {
   "id": "abc123-def456",
-  "messages": [
-    { "role": "user", "content": "Follow-up question..." }
-  ],
+  "messages": [{ "role": "user", "content": "Follow-up question..." }],
   "tags": ["code-review", "python", "error-handling"],
   "summary": "Extended discussion including error handling"
 }
@@ -344,23 +369,26 @@ Load a saved thread to continue the conversation. Returns context optimized for 
 ## Typical Workflow
 
 1. **Save a new thread** after an important conversation:
+
    ```json
    { "title": "Project Planning", "messages": [...], "tags": ["planning"] }
    ```
 
 2. **Continue later** - find and resume:
+
    ```json
-   { "title": "Project Planning" }  // resume_thread
+   { "title": "Project Planning" } // resume_thread
    ```
 
 3. **Add new messages** as the conversation continues:
+
    ```json
    { "title": "Project Planning", "messages": [new messages...] }  // update_thread
    ```
 
 4. **Search across threads** to find relevant context:
    ```json
-   { "query": "database schema", "tags": ["planning"] }  // find_threads
+   { "query": "database schema", "tags": ["planning"] } // find_threads
    ```
 
 ## Output Formats

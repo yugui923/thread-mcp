@@ -1,21 +1,43 @@
 import { z } from "zod";
-import { getDefaultLocalStorage, createLocalStorage } from "../storage/local.js";
+import { createLocalStorage } from "../storage/local.js";
 import { createRemoteStorage } from "../storage/remote.js";
+import {
+  resolveSource,
+  resolveStorageDir,
+  resolveRemoteUrl,
+  resolveApiKey,
+  resolveHeaders,
+} from "../config.js";
 
 export const DeleteThreadInputSchema = z.object({
   // Lookup (use one)
   id: z.string().optional().describe("ID of the thread to delete"),
   title: z.string().optional().describe("Find and delete thread by exact title match"),
 
-  // Source
+  // Source - no default, falls back to env var
   source: z
     .enum(["local", "remote"])
-    .default("local")
-    .describe("Source where thread is stored"),
-  outputDir: z.string().optional().describe("Custom directory for local storage"),
-  remoteUrl: z.string().url().optional().describe("Remote server URL"),
-  apiKey: z.string().optional().describe("API key for remote"),
-  headers: z.record(z.string()).optional().describe("Additional headers for remote"),
+    .optional()
+    .describe("Source where thread is stored (default from THREAD_MCP_DEFAULT_SOURCE)"),
+  outputDir: z
+    .string()
+    .optional()
+    .describe(
+      "Custom directory for local storage (default from THREAD_MCP_STORAGE_DIR)",
+    ),
+  remoteUrl: z
+    .string()
+    .url()
+    .optional()
+    .describe("Remote server URL (default from THREAD_MCP_REMOTE_URL)"),
+  apiKey: z
+    .string()
+    .optional()
+    .describe("API key for remote (default from THREAD_MCP_API_KEY)"),
+  headers: z
+    .record(z.string())
+    .optional()
+    .describe("Additional headers for remote (merged with THREAD_MCP_REMOTE_HEADERS)"),
 });
 
 export type DeleteThreadInput = z.infer<typeof DeleteThreadInputSchema>;
@@ -25,20 +47,26 @@ export async function deleteThread(input: DeleteThreadInput) {
     throw new Error("Either 'id' or 'title' must be provided to identify the thread");
   }
 
-  if (input.source === "remote" && !input.remoteUrl) {
-    throw new Error("remoteUrl is required when source is 'remote'");
+  const source = resolveSource(input.source);
+
+  if (source === "remote") {
+    const remoteUrl = resolveRemoteUrl(input.remoteUrl);
+    if (!remoteUrl) {
+      throw new Error(
+        "Remote URL is required when source is 'remote'. " +
+          "Set THREAD_MCP_REMOTE_URL or provide remoteUrl parameter.",
+      );
+    }
   }
 
   const storage =
-    input.source === "remote"
+    source === "remote"
       ? createRemoteStorage({
-          url: input.remoteUrl!,
-          apiKey: input.apiKey,
-          headers: input.headers,
+          url: resolveRemoteUrl(input.remoteUrl)!,
+          apiKey: resolveApiKey(input.apiKey),
+          headers: resolveHeaders(input.headers),
         })
-      : input.outputDir
-        ? createLocalStorage(input.outputDir)
-        : getDefaultLocalStorage();
+      : createLocalStorage(resolveStorageDir(input.outputDir));
 
   // Find thread by title if needed
   let threadId = input.id;
@@ -58,7 +86,7 @@ export async function deleteThread(input: DeleteThreadInput) {
       return {
         deleted: false,
         error: `Thread with title '${input.title}' not found`,
-        source: input.source,
+        source,
       };
     }
   }
@@ -75,7 +103,7 @@ export async function deleteThread(input: DeleteThreadInput) {
     deleted,
     id: threadId,
     title: threadTitle,
-    source: input.source,
+    source,
   };
 }
 
