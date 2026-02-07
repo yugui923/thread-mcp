@@ -29,12 +29,14 @@ The problem we solve: AI conversations are ephemeral. When you have a productive
 We prioritize doing a few things well over doing many things poorly.
 
 **What this means in practice:**
+
 - Five core tools, not fifty
 - Simple file-based storage by default
 - Markdown as the primary format (human-readable)
 - No database required for basic usage
 
 **What we explicitly avoid:**
+
 - Complex query languages
 - Built-in AI analysis of conversations
 - Automatic categorization
@@ -45,6 +47,7 @@ We prioritize doing a few things well over doing many things poorly.
 Your conversations belong to you, not to a service.
 
 **Implementation:**
+
 - Local-first storage (files on your machine)
 - Human-readable formats (Markdown, JSON)
 - No lock-in (standard file formats)
@@ -52,6 +55,7 @@ Your conversations belong to you, not to a service.
 - No cloud requirement (remote storage is optional)
 
 **File format decisions:**
+
 ```markdown
 # Why Markdown as default?
 
@@ -66,12 +70,14 @@ Your conversations belong to you, not to a service.
 Simple by default, powerful when needed.
 
 **Zero-config experience:**
+
 ```bash
 # Just works - saves to ~/.thread-mcp/
 npx thread-mcp
 ```
 
 **Full customization available:**
+
 ```bash
 # Custom storage, format, and remote backup
 THREAD_MCP_STORAGE_DIR=/custom/path \
@@ -84,13 +90,13 @@ npx thread-mcp
 
 We build on established standards rather than inventing new ones.
 
-| Need | Our Approach | Alternative We Avoided |
-|------|--------------|----------------------|
-| AI Integration | MCP Protocol | Custom API |
-| Data Format | JSON, Markdown | Proprietary format |
-| Schema Validation | Zod (JSON Schema) | Custom validation |
-| Configuration | Environment variables | Config file format |
-| Publishing | npm + JSR | Single registry |
+| Need              | Our Approach          | Alternative We Avoided |
+| ----------------- | --------------------- | ---------------------- |
+| AI Integration    | MCP Protocol          | Custom API             |
+| Data Format       | JSON, Markdown        | Proprietary format     |
+| Schema Validation | Zod (JSON Schema)     | Custom validation      |
+| Configuration     | Environment variables | Config file format     |
+| Publishing        | npm + JSR             | Single registry        |
 
 ### 5. Layered Architecture
 
@@ -109,6 +115,7 @@ Each layer has one job and does it well.
 ```
 
 Why this matters:
+
 - Easy to add new formatters without touching storage
 - Easy to add new storage backends without touching tools
 - Easy to test each layer in isolation
@@ -126,12 +133,12 @@ MCP (Model Context Protocol) is Anthropic's open standard for connecting AI assi
 
 ### Alternative Approaches Considered
 
-| Approach | Pros | Cons | Why We Didn't Choose |
-|----------|------|------|---------------------|
-| REST API | Universal | Requires custom integration per client | Not AI-native |
-| Browser Extension | Easy install | Limited to browser-based AI | Not universal |
-| IDE Plugin | Deep integration | Platform-specific | Too narrow |
-| **MCP Server** | Standard, AI-native | Newer protocol | ✓ Chose this |
+| Approach          | Pros                | Cons                                   | Why We Didn't Choose |
+| ----------------- | ------------------- | -------------------------------------- | -------------------- |
+| REST API          | Universal           | Requires custom integration per client | Not AI-native        |
+| Browser Extension | Easy install        | Limited to browser-based AI            | Not universal        |
+| IDE Plugin        | Deep integration    | Platform-specific                      | Too narrow           |
+| **MCP Server**    | Standard, AI-native | Newer protocol                         | ✓ Chose this         |
 
 ## Architectural Decisions
 
@@ -140,6 +147,7 @@ MCP (Model Context Protocol) is Anthropic's open standard for connecting AI assi
 **What:** All data validation uses Zod schemas, which generate TypeScript types and JSON Schema.
 
 **Why:**
+
 ```typescript
 // Single source of truth
 export const MessageSchema = z.object({
@@ -156,6 +164,7 @@ const jsonSchema = zodToJsonSchema(MessageSchema);
 ```
 
 **Benefits:**
+
 - No type/runtime validation drift
 - Self-documenting schemas
 - MCP protocol compatibility built-in
@@ -165,6 +174,7 @@ const jsonSchema = zodToJsonSchema(MessageSchema);
 **What:** Conversation metadata stored in `.conversation-index.json` alongside conversation files.
 
 **Why not a database?**
+
 - Zero dependencies
 - Works on any system with a filesystem
 - Portable (copy the directory, copy the data)
@@ -185,11 +195,13 @@ Hardcoded Default       (lowest priority)
 ```
 
 **Why this order?**
+
 - Tool parameters allow per-call customization
 - Environment variables allow per-deployment configuration
 - Defaults ensure it "just works"
 
 **Example:**
+
 ```typescript
 // If tool call specifies format="json", use that
 // Else if THREAD_MCP_FORMAT=json, use that
@@ -201,12 +213,13 @@ const format = resolveFormat(input.format);
 
 **What:** Published to both npm and JSR.
 
-| Registry | Audience | What's Published |
-|----------|----------|-----------------|
-| npm | Node.js users | Compiled JavaScript |
-| JSR | Deno/modern TS | Source TypeScript |
+| Registry | Audience       | What's Published    |
+| -------- | -------------- | ------------------- |
+| npm      | Node.js users  | Compiled JavaScript |
+| JSR      | Deno/modern TS | Source TypeScript   |
 
 **Why both?**
+
 - npm has the largest audience
 - JSR provides better TypeScript experience
 - Different import patterns serve different needs
@@ -216,12 +229,14 @@ const format = resolveFormat(input.format);
 **What:** Only two runtime dependencies: `@modelcontextprotocol/sdk` and `zod`.
 
 **Why minimize dependencies?**
+
 - Faster installation
 - Smaller attack surface
 - Fewer breaking changes
 - Easier maintenance
 
 **What we avoided:**
+
 - ORMs (use filesystem directly)
 - HTTP clients (use native fetch)
 - Date libraries (use native Date)
@@ -300,12 +315,14 @@ THREAD_MCP_FORMAT=json
 ### Contribution Philosophy
 
 We welcome contributions that:
+
 - Fix bugs
 - Improve documentation
 - Add formatters or storage backends
 - Enhance existing tools
 
 We're cautious about contributions that:
+
 - Add new tools (discuss in an issue first)
 - Add dependencies
 - Change data formats
@@ -325,5 +342,5 @@ We'd rather be a reliable, simple tool that does its job well than a feature-ric
 
 ---
 
-*"Perfection is achieved, not when there is nothing more to add, but when there is nothing left to take away."*
+_"Perfection is achieved, not when there is nothing more to add, but when there is nothing left to take away."_
 — Antoine de Saint-Exupéry

@@ -8,7 +8,7 @@ export default tseslint.config(
     ignores: ["dist/**", "node_modules/**", "coverage/**"],
   },
   {
-    files: ["**/*.ts"],
+    files: ["src/**/*.ts"],
     languageOptions: {
       parserOptions: {
         project: true,
@@ -25,6 +25,17 @@ export default tseslint.config(
         "error",
         { prefer: "type-imports" },
       ],
+    },
+  },
+  {
+    files: ["tests/**/*.ts"],
+    rules: {
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
+      "@typescript-eslint/explicit-function-return-type": "off",
+      "@typescript-eslint/no-explicit-any": "warn",
     },
   },
 );

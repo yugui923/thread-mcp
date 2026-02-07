@@ -22,7 +22,9 @@ describe("MCP Server", () => {
   describe("ListTools", () => {
     it("should list all 5 tools", async () => {
       const handler = (
-        server as unknown as { _requestHandlers: Map<string, Function> }
+        server as unknown as {
+          _requestHandlers: Map<string, (...args: unknown[]) => unknown>;
+        }
       )._requestHandlers.get("tools/list");
 
       const response = await handler!({ method: "tools/list", params: {} }, {});
@@ -40,7 +42,9 @@ describe("MCP Server", () => {
 
     it("should have descriptions for all tools", async () => {
       const handler = (
-        server as unknown as { _requestHandlers: Map<string, Function> }
+        server as unknown as {
+          _requestHandlers: Map<string, (...args: unknown[]) => unknown>;
+        }
       )._requestHandlers.get("tools/list");
 
       const response = await handler!({ method: "tools/list", params: {} }, {});
@@ -56,7 +60,9 @@ describe("MCP Server", () => {
   describe("CallTool", () => {
     const getHandler = () =>
       (
-        server as unknown as { _requestHandlers: Map<string, Function> }
+        server as unknown as {
+          _requestHandlers: Map<string, (...args: unknown[]) => unknown>;
+        }
       )._requestHandlers.get("tools/call");
 
     describe("save_thread", () => {
@@ -432,7 +438,9 @@ describe("MCP Server", () => {
   describe("Full Workflow", () => {
     it("should support save, find, update, resume, delete workflow", async () => {
       const handler = (
-        server as unknown as { _requestHandlers: Map<string, Function> }
+        server as unknown as {
+          _requestHandlers: Map<string, (...args: unknown[]) => unknown>;
+        }
       )._requestHandlers.get("tools/call");
 
       // 1. Save

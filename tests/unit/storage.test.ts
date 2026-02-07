@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { mkdir, rm, readFile, writeFile } from "node:fs/promises";
+import { mkdir, rm, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { LocalStorage, createLocalStorage } from "../../src/storage/local.js";
-import { RemoteStorage, createRemoteStorage } from "../../src/storage/remote.js";
+import { createRemoteStorage } from "../../src/storage/remote.js";
 import type { Conversation, SaveOptions } from "../../src/types.js";
 
 describe("LocalStorage", () => {

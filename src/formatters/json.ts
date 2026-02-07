@@ -19,7 +19,7 @@ export const jsonFormatter: Formatter = {
 
     output.messages = conversation.messages.map((msg) => {
       if (!options.includeTimestamps) {
-        const { timestamp, ...rest } = msg;
+        const { timestamp: _timestamp, ...rest } = msg;
         return rest;
       }
       return msg;

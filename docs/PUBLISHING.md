@@ -15,10 +15,10 @@ This document explains how Thread MCP is published to package registries and how
 
 Thread MCP is published to two package registries:
 
-| Registry | Package Name | URL |
-|----------|-------------|-----|
-| **npm** | `thread-mcp` | https://www.npmjs.com/package/thread-mcp |
-| **JSR** | `@yug/thread-mcp` | https://jsr.io/@yug/thread-mcp |
+| Registry | Package Name      | URL                                      |
+| -------- | ----------------- | ---------------------------------------- |
+| **npm**  | `thread-mcp`      | https://www.npmjs.com/package/thread-mcp |
+| **JSR**  | `@yug/thread-mcp` | https://jsr.io/@yug/thread-mcp           |
 
 ### Why Two Registries?
 
@@ -38,11 +38,7 @@ Thread MCP is published to two package registries:
   "bin": {
     "thread-mcp": "dist/index.js"
   },
-  "files": [
-    "dist",
-    "README.md",
-    "LICENSE"
-  ],
+  "files": ["dist", "README.md", "LICENSE"],
   "scripts": {
     "prepublishOnly": "npm run build"
   }
@@ -51,15 +47,15 @@ Thread MCP is published to two package registries:
 
 #### Key Fields
 
-| Field | Purpose |
-|-------|---------|
-| `name` | Package name on npm |
-| `version` | Semantic version (must be unique per publish) |
-| `main` | Entry point for CommonJS/Node.js |
-| `types` | TypeScript declaration file |
-| `bin` | CLI command registration |
-| `files` | Files included in published package |
-| `prepublishOnly` | Build step before publishing |
+| Field            | Purpose                                       |
+| ---------------- | --------------------------------------------- |
+| `name`           | Package name on npm                           |
+| `version`        | Semantic version (must be unique per publish) |
+| `main`           | Entry point for CommonJS/Node.js              |
+| `types`          | TypeScript declaration file                   |
+| `bin`            | CLI command registration                      |
+| `files`          | Files included in published package           |
+| `prepublishOnly` | Build step before publishing                  |
 
 ### What Gets Published
 
@@ -128,12 +124,12 @@ npm run build
 
 #### Key Differences from npm
 
-| Aspect | npm | JSR |
-|--------|-----|-----|
-| Package name | `thread-mcp` | `@yug/thread-mcp` (scoped) |
-| Published files | Compiled JS | Source TypeScript |
-| Entry points | Single main + types | Multiple named exports |
-| Build required | Yes (`dist/`) | No (publishes source) |
+| Aspect          | npm                 | JSR                        |
+| --------------- | ------------------- | -------------------------- |
+| Package name    | `thread-mcp`        | `@yug/thread-mcp` (scoped) |
+| Published files | Compiled JS         | Source TypeScript          |
+| Entry points    | Single main + types | Multiple named exports     |
+| Build required  | Yes (`dist/`)       | No (publishes source)      |
 
 ### Export Mapping
 
@@ -290,10 +286,10 @@ Thread MCP uses GitHub Actions for automated publishing with two workflows:
 
 ### Workflow Overview
 
-| Trigger | Action | Version | npm Tag |
-|---------|--------|---------|---------|
-| Push to `main` | Publish dev version | `X.Y.Z-dev.{sha}` | `dev` |
-| Push tag `v*` | Publish release | `X.Y.Z` | `latest` |
+| Trigger        | Action              | Version           | npm Tag  |
+| -------------- | ------------------- | ----------------- | -------- |
+| Push to `main` | Publish dev version | `X.Y.Z-dev.{sha}` | `dev`    |
+| Push tag `v*`  | Publish release     | `X.Y.Z`           | `latest` |
 
 ### Dev Builds (Continuous)
 
@@ -308,6 +304,7 @@ npm install thread-mcp@1.1.0-dev.abc1234
 ```
 
 Dev versions:
+
 - Use format: `{base-version}-dev.{short-sha}` (e.g., `1.1.0-dev.2ae15c2`)
 - Published with npm tag `dev` (doesn't affect `latest`)
 - Published to JSR as prerelease versions
@@ -324,6 +321,7 @@ git push origin v1.2.0
 ```
 
 The workflow:
+
 1. Verifies tag version matches `package.json` version
 2. Runs full test suite
 3. Publishes to npm with `latest` tag
@@ -359,12 +357,13 @@ jobs:
 
 ### Required Secrets
 
-| Secret | Required For | How to Obtain |
-|--------|--------------|---------------|
+| Secret      | Required For   | How to Obtain                                                    |
+| ----------- | -------------- | ---------------------------------------------------------------- |
 | `NPM_TOKEN` | npm publishing | npmjs.com → Account → Access Tokens → Generate (Automation type) |
-| `JSR_TOKEN` | JSR publishing | jsr.io → Account Settings → Access Tokens → Create |
+| `JSR_TOKEN` | JSR publishing | jsr.io → Account Settings → Access Tokens → Create               |
 
 Add both secrets to your repository:
+
 1. Go to GitHub repo → Settings → Secrets and variables → Actions
 2. Click "New repository secret"
 3. Add `NPM_TOKEN` and `JSR_TOKEN`

@@ -225,5 +225,8 @@ interface StorageProvider {
 
 - Create feature branches from `main`
 - Write descriptive commit messages
-- Run tests before committing: `npm test`
-- Format code before committing: `npm run format`
+- Before each commit, run tests, lint, and format checks:
+  ```bash
+  npm test && npm run lint && npm run format:check
+  ```
+- Fix any issues before committing (use `npm run format` to auto-fix formatting)

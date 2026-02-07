@@ -116,7 +116,9 @@ export const MyToolInputSchema = z.object({
 // 2. Implement handler function
 export async function myTool(input: MyToolInput) {
   // Business logic
-  return { /* result */ };
+  return {
+    /* result */
+  };
 }
 
 // 3. Export tool definition
@@ -130,13 +132,13 @@ export const myToolTool = {
 
 #### Tool Responsibilities
 
-| Tool | Primary Responsibility |
-|------|----------------------|
-| `save_thread` | Create new conversation, generate ID, persist to storage |
-| `find_threads` | Search, filter, and retrieve conversations with relevance scoring |
-| `update_thread` | Append messages, deduplicate, update metadata |
-| `delete_thread` | Remove conversation from storage |
-| `resume_thread` | Load conversation with context optimized for AI continuation |
+| Tool            | Primary Responsibility                                            |
+| --------------- | ----------------------------------------------------------------- |
+| `save_thread`   | Create new conversation, generate ID, persist to storage          |
+| `find_threads`  | Search, filter, and retrieve conversations with relevance scoring |
+| `update_thread` | Append messages, deduplicate, update metadata                     |
+| `delete_thread` | Remove conversation from storage                                  |
+| `resume_thread` | Load conversation with context optimized for AI continuation      |
 
 ### 4. Storage Layer (`storage/`)
 
@@ -144,7 +146,10 @@ The storage layer implements the **Repository Pattern** through the `StorageProv
 
 ```typescript
 interface StorageProvider {
-  save(conversation: Conversation, options: SaveOptions): Promise<SavedConversationInfo>;
+  save(
+    conversation: Conversation,
+    options: SaveOptions,
+  ): Promise<SavedConversationInfo>;
   list(): Promise<SavedConversationInfo[]>;
   get(id: string): Promise<Conversation | null>;
   delete(id: string): Promise<boolean>;
@@ -177,7 +182,7 @@ Formatters handle bidirectional conversion between `Conversation` objects and th
 
 ```typescript
 interface Formatter {
-  extension: string;  // File extension (e.g., ".md")
+  extension: string; // File extension (e.g., ".md")
   format(conversation: Conversation, options: SaveOptions): string;
   parse(content: string): Conversation;
 }
@@ -246,9 +251,9 @@ This is implemented through `resolve*` functions:
 ```typescript
 export function resolveFormat(toolParam: string | undefined): OutputFormat {
   if (toolParam === "markdown" || toolParam === "json") {
-    return toolParam;  // Tool param wins
+    return toolParam; // Tool param wins
   }
-  return getServerConfig().format;  // Fall back to env/default
+  return getServerConfig().format; // Fall back to env/default
 }
 ```
 
@@ -316,28 +321,28 @@ export type Message = z.infer<typeof MessageSchema>;
 
 ### Core Types
 
-| Type | Purpose |
-|------|---------|
-| `Message` | Single conversation message with role and content |
-| `Conversation` | Complete thread with ID, metadata, and messages |
-| `ConversationMetadata` | Title, timestamps, tags, summary, source app |
-| `SaveOptions` | Format and output preferences |
-| `SavedConversationInfo` | Lightweight info for listings (no content) |
-| `StorageProvider` | Interface for storage backends |
-| `Formatter` | Interface for serialization formats |
+| Type                    | Purpose                                           |
+| ----------------------- | ------------------------------------------------- |
+| `Message`               | Single conversation message with role and content |
+| `Conversation`          | Complete thread with ID, metadata, and messages   |
+| `ConversationMetadata`  | Title, timestamps, tags, summary, source app      |
+| `SaveOptions`           | Format and output preferences                     |
+| `SavedConversationInfo` | Lightweight info for listings (no content)        |
+| `StorageProvider`       | Interface for storage backends                    |
+| `Formatter`             | Interface for serialization formats               |
 
 ## Configuration System
 
 ### Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `THREAD_MCP_STORAGE_DIR` | `~/.thread-mcp` | Storage directory |
-| `THREAD_MCP_FORMAT` | `markdown` | Output format |
-| `THREAD_MCP_DEFAULT_SOURCE` | `local` | Storage backend |
-| `THREAD_MCP_REMOTE_URL` | - | Remote server URL |
-| `THREAD_MCP_API_KEY` | - | Authentication key |
-| `THREAD_MCP_REMOTE_HEADERS` | `{}` | JSON-encoded headers |
+| Variable                    | Default         | Description          |
+| --------------------------- | --------------- | -------------------- |
+| `THREAD_MCP_STORAGE_DIR`    | `~/.thread-mcp` | Storage directory    |
+| `THREAD_MCP_FORMAT`         | `markdown`      | Output format        |
+| `THREAD_MCP_DEFAULT_SOURCE` | `local`         | Storage backend      |
+| `THREAD_MCP_REMOTE_URL`     | -               | Remote server URL    |
+| `THREAD_MCP_API_KEY`        | -               | Authentication key   |
+| `THREAD_MCP_REMOTE_HEADERS` | `{}`            | JSON-encoded headers |
 
 ### Configuration Caching
 
@@ -348,7 +353,9 @@ let cachedConfig: ServerConfig | null = null;
 
 export function getServerConfig(): ServerConfig {
   if (cachedConfig) return cachedConfig;
-  cachedConfig = { /* read from env */ };
+  cachedConfig = {
+    /* read from env */
+  };
   return cachedConfig;
 }
 ```
