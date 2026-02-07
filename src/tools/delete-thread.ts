@@ -35,7 +35,7 @@ export const DeleteThreadInputSchema = z.object({
     .optional()
     .describe("API key for remote (default from THREAD_MCP_API_KEY)"),
   headers: z
-    .record(z.string())
+    .record(z.string(), z.string())
     .optional()
     .describe("Additional headers for remote (merged with THREAD_MCP_REMOTE_HEADERS)"),
 });
