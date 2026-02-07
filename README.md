@@ -1,5 +1,22 @@
 # Thread MCP
 
+[![CI][ci-img]][ci]
+[![CodeQL][codeql-img]][codeql]
+[![codecov][codecov-img]][codecov]
+[![OpenSSF Scorecard][scorecard-img]][scorecard]
+[![License: GPL-3.0][license-img]][license]
+
+[ci-img]: https://github.com/yugui923/thread-mcp/actions/workflows/ci.yml/badge.svg
+[ci]: https://github.com/yugui923/thread-mcp/actions/workflows/ci.yml
+[codeql-img]: https://github.com/yugui923/thread-mcp/actions/workflows/codeql.yml/badge.svg
+[codeql]: https://github.com/yugui923/thread-mcp/actions/workflows/codeql.yml
+[codecov-img]: https://codecov.io/gh/yugui923/thread-mcp/graph/badge.svg
+[codecov]: https://codecov.io/gh/yugui923/thread-mcp
+[scorecard-img]: https://api.scorecard.dev/projects/github.com/yugui923/thread-mcp/badge
+[scorecard]: https://scorecard.dev/viewer/?uri=github.com/yugui923/thread-mcp
+[license-img]: https://img.shields.io/github/license/yugui923/thread-mcp
+[license]: https://github.com/yugui923/thread-mcp/blob/main/LICENSE
+
 An MCP (Model Context Protocol) server for saving AI conversation threads to local files or remote servers. This tool enables you to preserve, update, search, and resume your conversations with AI applications like Claude, ChatGPT, and others.
 
 ## Features
