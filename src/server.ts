@@ -94,10 +94,24 @@ function zodToJsonSchema(schema: z.ZodType): Record<string, unknown> {
   }
 
   if (schema instanceof z.ZodDefault) {
-    const inner = zodToJsonSchema(schema._def.innerType);
+    // Zod 4: _def moved to _zod.def, defaultValue is a value not a function
+    const def =
+      (
+        schema as unknown as {
+          _zod: { def: { innerType: z.ZodType; defaultValue: unknown } };
+        }
+      )._zod?.def ??
+      (
+        schema as unknown as {
+          _def: { innerType: z.ZodType; defaultValue: () => unknown };
+        }
+      )._def;
+    const inner = zodToJsonSchema(def.innerType);
+    const defaultVal =
+      typeof def.defaultValue === "function" ? def.defaultValue() : def.defaultValue;
     return {
       ...inner,
-      default: schema._def.defaultValue(),
+      default: defaultVal,
     };
   }
 
