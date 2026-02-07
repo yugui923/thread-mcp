@@ -40,7 +40,7 @@ jobs:
           fail_ci_if_error: false
 
       - name: Security audit
-        run: npm audit --audit-level=moderate
+        run: npm audit --audit-level=high
 
   build:
     name: Build
