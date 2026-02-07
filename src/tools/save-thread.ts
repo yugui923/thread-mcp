@@ -56,7 +56,7 @@ export const SaveThreadInputSchema = z.object({
     .optional()
     .describe("API key for remote authentication (default from THREAD_MCP_API_KEY)"),
   headers: z
-    .record(z.string())
+    .record(z.string(), z.string())
     .optional()
     .describe(
       "Additional headers for remote requests (merged with THREAD_MCP_REMOTE_HEADERS)",

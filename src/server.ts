@@ -74,44 +74,40 @@ function zodToJsonSchema(schema: z.ZodType): Record<string, unknown> {
   }
 
   if (schema instanceof z.ZodArray) {
+    const def = (schema as unknown as { _zod: { def: { element: z.ZodType } } })._zod
+      .def;
     return {
       type: "array",
-      items: zodToJsonSchema(schema.element),
+      items: zodToJsonSchema(def.element),
       description: schema.description,
     };
   }
 
   if (schema instanceof z.ZodRecord) {
+    const def = (schema as unknown as { _zod: { def: { valueType: z.ZodType } } })._zod
+      .def;
     return {
       type: "object",
-      additionalProperties: zodToJsonSchema(schema.valueSchema),
+      additionalProperties: zodToJsonSchema(def.valueType),
       description: schema.description,
     };
   }
 
   if (schema instanceof z.ZodOptional) {
-    return zodToJsonSchema(schema.unwrap());
+    const def = (schema as unknown as { _zod: { def: { innerType: z.ZodType } } })._zod
+      .def;
+    return zodToJsonSchema(def.innerType);
   }
 
   if (schema instanceof z.ZodDefault) {
-    // Zod 4: _def moved to _zod.def, defaultValue is a value not a function
-    const def =
-      (
-        schema as unknown as {
-          _zod: { def: { innerType: z.ZodType; defaultValue: unknown } };
-        }
-      )._zod?.def ??
-      (
-        schema as unknown as {
-          _def: { innerType: z.ZodType; defaultValue: () => unknown };
-        }
-      )._def;
-    const inner = zodToJsonSchema(def.innerType);
-    const defaultVal =
-      typeof def.defaultValue === "function" ? def.defaultValue() : def.defaultValue;
+    const def = (
+      schema as unknown as {
+        _zod: { def: { innerType: z.ZodType; defaultValue: unknown } };
+      }
+    )._zod.def;
     return {
-      ...inner,
-      default: defaultVal,
+      ...zodToJsonSchema(def.innerType),
+      default: def.defaultValue,
     };
   }
 
