@@ -284,48 +284,90 @@ npm publish
 npx jsr publish
 ```
 
-## CI/CD Considerations
+## CI/CD Automation
 
-### Automated Publishing (Future)
+Thread MCP uses GitHub Actions for automated publishing with two workflows:
 
-For automated releases, you would typically:
+### Workflow Overview
 
-1. **npm**: Use `NPM_TOKEN` secret with `npm publish`
-2. **JSR**: Use `JSR_TOKEN` or OIDC authentication
+| Trigger | Action | Version | npm Tag |
+|---------|--------|---------|---------|
+| Push to `main` | Publish dev version | `X.Y.Z-dev.{sha}` | `dev` |
+| Push tag `v*` | Publish release | `X.Y.Z` | `latest` |
 
-### GitHub Actions Example
+### Dev Builds (Continuous)
+
+Every push to `main` automatically publishes a dev version:
+
+```bash
+# Install dev version
+npm install thread-mcp@dev
+
+# Or specific dev version
+npm install thread-mcp@1.1.0-dev.abc1234
+```
+
+Dev versions:
+- Use format: `{base-version}-dev.{short-sha}` (e.g., `1.1.0-dev.2ae15c2`)
+- Published with npm tag `dev` (doesn't affect `latest`)
+- Published to JSR as prerelease versions
+- Useful for testing unreleased changes
+
+### Release Builds (Tagged)
+
+When you push a version tag, the workflow publishes to production:
+
+```bash
+# Create and push a release
+git tag -a v1.2.0 -m "Release v1.2.0"
+git push origin v1.2.0
+```
+
+The workflow:
+1. Verifies tag version matches `package.json` version
+2. Runs full test suite
+3. Publishes to npm with `latest` tag
+4. Publishes to JSR
+
+### GitHub Actions Configuration
+
+The publish workflow (`.github/workflows/publish.yml`):
 
 ```yaml
 name: Publish
 
 on:
   push:
+    branches: [main]
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
-  publish-npm:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          registry-url: 'https://registry.npmjs.org'
-      - run: npm ci
-      - run: npm test
-      - run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+  test:
+    # Runs typecheck, lint, format check, and tests
 
-  publish-jsr:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: npx jsr publish
-        env:
-          JSR_TOKEN: ${{ secrets.JSR_TOKEN }}
+  publish-dev:
+    if: github.ref == 'refs/heads/main'
+    needs: test
+    # Generates dev version and publishes with --tag dev
+
+  publish-release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: test
+    # Verifies version and publishes to latest
 ```
+
+### Required Secrets
+
+| Secret | Required For | How to Obtain |
+|--------|--------------|---------------|
+| `NPM_TOKEN` | npm publishing | npmjs.com → Account → Access Tokens → Generate (Automation type) |
+| `JSR_TOKEN` | JSR publishing | jsr.io → Account Settings → Access Tokens → Create |
+
+Add both secrets to your repository:
+1. Go to GitHub repo → Settings → Secrets and variables → Actions
+2. Click "New repository secret"
+3. Add `NPM_TOKEN` and `JSR_TOKEN`
 
 ### Pre-publish Checklist
 
