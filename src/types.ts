@@ -40,7 +40,7 @@ export type SaveOptions = z.infer<typeof SaveOptionsSchema>;
 export const RemoteConfigSchema = z.object({
   url: z.string().url(),
   apiKey: z.string().optional(),
-  headers: z.record(z.string()).optional(),
+  headers: z.record(z.string(), z.string()).optional(),
 });
 export type RemoteConfig = z.infer<typeof RemoteConfigSchema>;
 
