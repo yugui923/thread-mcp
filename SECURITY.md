@@ -8,14 +8,14 @@
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability in this project, please report it by:
+If you discover a security vulnerability in this project, please report it responsibly:
 
 1. **Do not** open a public GitHub issue
-2. Email the maintainer directly or use GitHub's private vulnerability reporting feature
+2. [Report a vulnerability through GitHub's private vulnerability reporting](https://github.com/yugui923/thread-mcp/security/advisories/new)
 3. Include a detailed description of the vulnerability
 4. Provide steps to reproduce if possible
 
-We will respond to security reports within 48 hours and work to address confirmed vulnerabilities promptly.
+We will respond to security reports within one week and work to address confirmed vulnerabilities promptly.
 
 ## Security Measures
 
