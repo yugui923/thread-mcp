@@ -27,6 +27,23 @@ An MCP (Model Context Protocol) server for saving AI conversation threads to loc
 - **Resume Conversations**: Load previous threads with context optimized for AI continuation
 - **Rich Metadata**: Include timestamps, tags, summaries, and source application info
 
+## Demo
+
+![thread-mcp demo](demo/demo.gif)
+
+The demo connects to the MCP server via stdio, then walks through saving, searching, resuming, updating, and deleting conversation threads. To run it locally:
+
+```bash
+npm run build
+node --import tsx demo/demo.ts
+```
+
+To record the GIF (requires [VHS](https://github.com/charmbracelet/vhs)):
+
+```bash
+vhs demo/demo.tape
+```
+
 ## Installation
 
 ```bash
