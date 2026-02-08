@@ -2,6 +2,8 @@
  * Demo script for thread-mcp — connects via MCP SDK and walks through
  * the full save / find / resume / update / delete workflow.
  *
+ * Uses realistic pacing to simulate an LLM calling tools.
+ *
  * Usage:
  *   npm run build && node --import tsx demo/demo.ts
  */
@@ -34,15 +36,15 @@ function parseResult(result: { content: Array<{ type: string; text?: string }> }
   return JSON.parse(textContent?.text || "{}");
 }
 
-function header(label: string) {
+function header(step: number, label: string) {
   console.log();
   console.log(
-    `${BOLD}${CYAN}━━━ ${label} ${"━".repeat(Math.max(0, 60 - label.length))}${RESET}`,
+    `${BOLD}${CYAN}━━━ Step ${step}: ${label} ${"━".repeat(Math.max(0, 52 - label.length))}${RESET}`,
   );
   console.log();
 }
 
-function step(msg: string) {
+function log(msg: string) {
   console.log(`  ${GREEN}▸${RESET} ${msg}`);
 }
 
@@ -50,43 +52,45 @@ function info(label: string, value: string) {
   console.log(`    ${DIM}${label}:${RESET} ${value}`);
 }
 
-function json(obj: unknown) {
-  const text = JSON.stringify(obj, null, 2);
-  for (const line of text.split("\n")) {
-    console.log(`    ${DIM}${line}${RESET}`);
-  }
+function pause(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+// Simulate LLM "thinking" before calling a tool
+async function thinking(action: string) {
+  process.stdout.write(`  ${DIM}⏳ ${action}${RESET}`);
+  await pause(800);
+  process.stdout.write("\r\x1b[2K"); // clear line
 }
 
 // ── Main ─────────────────────────────────────────────────────────────────────
 
 async function main() {
-  // Create a temp directory so the demo is self-contained
   const demoDir = join(tmpdir(), `thread-mcp-demo-${Date.now()}`);
   await mkdir(demoDir, { recursive: true });
 
   console.log();
   console.log(
-    `${BOLD}${MAGENTA}  ╔══════════════════════════════════════════╗${RESET}`,
+    `${BOLD}${MAGENTA}  ┌──────────────────────────────────────────────┐${RESET}`,
   );
   console.log(
-    `${BOLD}${MAGENTA}  ║        thread-mcp  —  Live Demo          ║${RESET}`,
+    `${BOLD}${MAGENTA}  │           thread-mcp  ·  Live Demo           │${RESET}`,
   );
   console.log(
-    `${BOLD}${MAGENTA}  ╚══════════════════════════════════════════╝${RESET}`,
+    `${BOLD}${MAGENTA}  │  Save, search, resume & manage AI threads    │${RESET}`,
   );
-  console.log();
-  console.log(`  ${DIM}Save, search, resume & manage AI conversation threads${RESET}`);
-  console.log(`  ${DIM}Output dir: ${demoDir}${RESET}`);
+  console.log(
+    `${BOLD}${MAGENTA}  └──────────────────────────────────────────────┘${RESET}`,
+  );
 
-  // ── Connect ────────────────────────────────────────────────────────────────
+  await pause(1500);
 
-  header("1 · Connect to MCP server");
+  // ── 1. Connect ─────────────────────────────────────────────────────────────
 
-  step("Spawning server via stdio transport…");
+  header(1, "Connect to MCP server");
+
+  log("Spawning server via stdio transport…");
+  await pause(600);
 
   const transport = new StdioClientTransport({
     command: "node",
@@ -101,47 +105,47 @@ async function main() {
   );
 
   await client.connect(transport);
-  step(`${GREEN}Connected!${RESET}`);
+  log(`${GREEN}Connected!${RESET}`);
+  await pause(400);
 
   const { tools } = await client.listTools();
-  step(`Available tools (${tools.length}):`);
+  log(`Server exposes ${BOLD}${tools.length} tools${RESET}:`);
   for (const tool of tools) {
-    console.log(
-      `    ${YELLOW}${tool.name}${RESET}  ${DIM}— ${tool.description?.slice(0, 70)}…${RESET}`,
-    );
+    console.log(`    ${YELLOW}${tool.name}${RESET}`);
   }
 
-  await sleep(500);
+  await pause(1500);
 
-  // ── Save thread #1 (markdown) ──────────────────────────────────────────────
+  // ── 2. save_thread ─────────────────────────────────────────────────────────
 
-  header("2 · Save a thread (markdown)");
+  header(2, "save_thread");
 
-  step("Saving a coding conversation…");
+  log("Saving a React debugging conversation (markdown)…");
+  await thinking("Calling save_thread…");
 
   const save1 = parseResult(
     await client.callTool({
       name: "save_thread",
       arguments: {
-        title: "Fix React useEffect cleanup",
+        title: "Fix useEffect memory leak",
         messages: [
           {
             role: "user",
             content:
-              "I have a memory leak in my React component. The useEffect cleanup isn't running when the component unmounts.",
+              "My React app leaks memory. The WebSocket connection stays open after navigating away from the dashboard page.",
           },
           {
             role: "assistant",
             content:
-              "This is a common issue! Make sure you're returning a cleanup function from useEffect. Here's the pattern:\n\n```tsx\nuseEffect(() => {\n  const controller = new AbortController();\n  fetchData(controller.signal);\n  return () => controller.abort();\n}, []);\n```\n\nThe cleanup function runs when the component unmounts or before the effect re-runs.",
+              "You need to close the WebSocket in a useEffect cleanup function:\n\n```tsx\nuseEffect(() => {\n  const ws = new WebSocket(url);\n  ws.onmessage = handleMessage;\n  return () => ws.close();  // cleanup on unmount\n}, [url]);\n```\n\nThis ensures the connection closes when the component unmounts or when `url` changes.",
           },
           {
             role: "user",
-            content: "That fixed it! The AbortController pattern is really clean.",
+            content: "That fixed it — no more leaked connections. Thanks!",
           },
         ],
-        tags: ["react", "hooks", "debugging"],
-        summary: "Debugging a useEffect memory leak with AbortController cleanup",
+        tags: ["react", "hooks", "websocket", "debugging"],
+        summary: "Fixed a WebSocket memory leak by adding useEffect cleanup",
         sourceApp: "Claude Code",
         format: "markdown",
         outputDir: demoDir,
@@ -149,38 +153,36 @@ async function main() {
     }),
   );
 
-  info("ID", save1.id);
+  log(`${GREEN}Saved!${RESET}`);
+  info("Title", `"${save1.title}"`);
   info("Format", save1.format);
   info("Messages", String(save1.messageCount));
-  info("File", save1.filePath);
+  info("Tags", "react, hooks, websocket, debugging");
 
-  await sleep(500);
+  await pause(1200);
 
-  // ── Save thread #2 (JSON) ──────────────────────────────────────────────────
-
-  header("3 · Save another thread (JSON)");
-
-  step("Saving a Python conversation…");
+  log("Saving a Python async conversation (JSON)…");
+  await thinking("Calling save_thread…");
 
   const save2 = parseResult(
     await client.callTool({
       name: "save_thread",
       arguments: {
-        title: "Python async patterns",
+        title: "Database connection pooling in FastAPI",
         messages: [
           {
             role: "user",
             content:
-              "What's the difference between asyncio.gather and asyncio.TaskGroup?",
+              "My FastAPI app creates a new DB connection for every request and it's slow under load. How do I add connection pooling?",
           },
           {
             role: "assistant",
             content:
-              "TaskGroup (Python 3.11+) is the modern approach. Unlike gather(), it cancels all tasks if any task raises an exception, preventing fire-and-forget failures. Use TaskGroup for structured concurrency.",
+              "Use SQLAlchemy's async engine with a connection pool. Set pool_size and max_overflow in create_async_engine(), then use a dependency to yield sessions from the pool.",
           },
         ],
-        tags: ["python", "async", "concurrency"],
-        summary: "Comparing asyncio.gather vs TaskGroup for structured concurrency",
+        tags: ["python", "fastapi", "database", "performance"],
+        summary: "Setting up SQLAlchemy connection pooling in FastAPI",
         sourceApp: "Claude Code",
         format: "json",
         outputDir: demoDir,
@@ -188,31 +190,31 @@ async function main() {
     }),
   );
 
-  info("ID", save2.id);
+  log(`${GREEN}Saved!${RESET}`);
+  info("Title", `"${save2.title}"`);
   info("Format", save2.format);
-  info("Messages", String(save2.messageCount));
-  info("File", save2.filePath);
 
-  await sleep(500);
+  await pause(1500);
 
-  // ── Find threads ───────────────────────────────────────────────────────────
+  // ── 3. find_threads ────────────────────────────────────────────────────────
 
-  header("4 · Find threads");
+  header(3, "find_threads");
 
-  step("Searching for threads about debugging…");
+  log('Searching for "memory leak"…');
+  await thinking("Calling find_threads…");
 
   const found = parseResult(
     await client.callTool({
       name: "find_threads",
       arguments: {
-        query: "debugging",
+        query: "memory leak",
         includeRelevanceInfo: true,
         outputDir: demoDir,
       },
     }),
   );
 
-  info("Results found", String(found.totalResults));
+  log(`Found ${BOLD}${found.totalResults}${RESET} result(s):`);
   for (const thread of found.threads) {
     console.log();
     console.log(`    ${BOLD}${WHITE}${thread.title}${RESET}`);
@@ -220,14 +222,15 @@ async function main() {
     if (thread.relevance) {
       info(
         "  Relevance",
-        `score ${thread.relevance.score}, matched: ${thread.relevance.matchedFields.join(", ")}`,
+        `score ${thread.relevance.score}, matched: [${thread.relevance.matchedFields.join(", ")}]`,
       );
     }
   }
 
-  await sleep(500);
+  await pause(1200);
 
-  step("Listing all threads…");
+  log("Listing all saved threads…");
+  await thinking("Calling find_threads…");
 
   const all = parseResult(
     await client.callTool({
@@ -236,20 +239,21 @@ async function main() {
     }),
   );
 
-  info("Total threads", String(all.totalResults));
+  log(`${BOLD}${all.totalResults}${RESET} threads on disk:`);
   for (const thread of all.threads) {
     console.log(
-      `    ${BLUE}•${RESET} ${thread.title}  ${DIM}(${thread.sourceApp || "unknown"})${RESET}`,
+      `    ${BLUE}•${RESET} ${thread.title}  ${DIM}[${thread.format}]${RESET}`,
     );
   }
 
-  await sleep(500);
+  await pause(1500);
 
-  // ── Resume a thread ────────────────────────────────────────────────────────
+  // ── 4. resume_thread ───────────────────────────────────────────────────────
 
-  header("5 · Resume a thread");
+  header(4, "resume_thread");
 
-  step("Resuming the React thread (narrative format)…");
+  log("Resuming the React thread to continue the conversation…");
+  await thinking("Calling resume_thread…");
 
   const resumed = parseResult(
     await client.callTool({
@@ -262,21 +266,21 @@ async function main() {
     }),
   );
 
-  info("Found", String(resumed.found));
-  info("Format", resumed.format);
+  log(`Thread loaded (${BOLD}${resumed.format}${RESET} format):`);
   console.log();
-  // Print the narrative content with indentation
-  for (const line of resumed.content.split("\n").slice(0, 20)) {
+  for (const line of resumed.content.split("\n").slice(0, 18)) {
     console.log(`    ${DIM}${line}${RESET}`);
   }
+  console.log(`    ${DIM}…${RESET}`);
 
-  await sleep(500);
+  await pause(2000);
 
-  // ── Update a thread ────────────────────────────────────────────────────────
+  // ── 5. update_thread ───────────────────────────────────────────────────────
 
-  header("6 · Update a thread (append messages)");
+  header(5, "update_thread");
 
-  step("Appending a follow-up to the React thread…");
+  log("Appending a follow-up exchange to the React thread…");
+  await thinking("Calling update_thread…");
 
   const updated = parseResult(
     await client.callTool({
@@ -286,41 +290,33 @@ async function main() {
         messages: [
           {
             role: "user",
-            content:
-              "One more question — should I use useCallback for the fetch function?",
+            content: "Should I also wrap the handler in useCallback?",
           },
           {
             role: "assistant",
             content:
-              "Only if you pass the function as a prop or include it in another hook's dependency array. Otherwise the AbortController pattern alone is sufficient.",
+              "Only if you pass it as a dependency to another hook. For this pattern, the cleanup is what matters most.",
           },
         ],
-        newTags: ["react", "hooks", "debugging", "performance"],
+        newTags: ["react", "hooks", "websocket", "debugging", "performance"],
         outputDir: demoDir,
       },
     }),
   );
 
+  log(`${GREEN}Updated!${RESET}`);
   info("Mode", updated.mode);
   info("Messages added", String(updated.messagesAdded));
-  info("Total messages", String(updated.messageCount));
+  info("Total messages now", String(updated.messageCount));
 
-  // Verify the updated tags by fetching the thread
-  const afterUpdate = parseResult(
-    await client.callTool({
-      name: "find_threads",
-      arguments: { id: save1.id, outputDir: demoDir },
-    }),
-  );
-  info("Updated tags", (afterUpdate.thread.tags || []).join(", "));
+  await pause(1500);
 
-  await sleep(500);
+  // ── 6. delete_thread ───────────────────────────────────────────────────────
 
-  // ── Delete a thread ────────────────────────────────────────────────────────
+  header(6, "delete_thread");
 
-  header("7 · Delete a thread");
-
-  step("Deleting the Python thread…");
+  log("Deleting the FastAPI thread…");
+  await thinking("Calling delete_thread…");
 
   const deleted = parseResult(
     await client.callTool({
@@ -332,27 +328,26 @@ async function main() {
     }),
   );
 
-  info("Deleted", String(deleted.deleted));
-  info("Title", deleted.title);
+  log(`${GREEN}Deleted!${RESET}  "${deleted.title}"`);
+  await pause(600);
 
-  step("Confirming deletion…");
-
+  log("Confirming deletion…");
   const confirm = parseResult(
     await client.callTool({
       name: "find_threads",
       arguments: { outputDir: demoDir },
     }),
   );
-
   info("Remaining threads", String(confirm.totalResults));
 
-  await sleep(500);
+  await pause(1500);
 
-  // ── Show saved file on disk ────────────────────────────────────────────────
+  // ── 7. Show the file on disk ───────────────────────────────────────────────
 
-  header("8 · Saved markdown file on disk");
+  header(7, "Saved file on disk");
 
-  step(`Reading ${save1.filePath}…`);
+  log(`Reading the markdown file…`);
+  await pause(400);
   console.log();
 
   const fileContent = await readFile(save1.filePath, "utf-8");
@@ -360,11 +355,13 @@ async function main() {
     console.log(`  ${DIM}│${RESET} ${line}`);
   }
 
-  // ── Cleanup & exit ─────────────────────────────────────────────────────────
+  await pause(1500);
+
+  // ── Done ───────────────────────────────────────────────────────────────────
 
   console.log();
   console.log(
-    `${BOLD}${GREEN}  ✓ Demo complete!${RESET}  ${DIM}All tools demonstrated successfully.${RESET}`,
+    `${BOLD}${GREEN}  ✓ Demo complete!${RESET}  ${DIM}All 5 tools demonstrated.${RESET}`,
   );
   console.log();
 

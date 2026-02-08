@@ -1,6 +1,6 @@
 # VHS tape file for thread-mcp demo
 # Install VHS: https://github.com/charmbracelet/vhs
-# Run: vhs demo/demo.tape
+# Run: VHS_NO_SANDBOX=true vhs demo/demo.tape
 
 Output demo/demo.gif
 
@@ -10,14 +10,14 @@ Set Width 1000
 Set Height 700
 Set Padding 20
 Set Theme "Catppuccin Mocha"
-Set TypingSpeed 0ms
-Set PlaybackSpeed 0.5
+Set TypingSpeed 50ms
+Set PlaybackSpeed 1
 
 Sleep 500ms
 
 Type "node --import tsx demo/demo.ts"
 Enter
 
-Sleep 25s
+Sleep 32s
 
 Sleep 2s
