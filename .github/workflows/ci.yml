@@ -33,6 +33,9 @@ jobs:
       - name: Check formatting
         run: npm run format:check
 
+      - name: Build (required for E2E tests)
+        run: npm run build
+
       - name: Run tests with coverage
         run: npm run test:coverage
 
