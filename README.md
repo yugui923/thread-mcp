@@ -17,7 +17,7 @@
 [license-img]: https://img.shields.io/github/license/yugui923/thread-mcp
 [license]: https://github.com/yugui923/thread-mcp/blob/main/LICENSE
 
-An MCP (Model Context Protocol) server for saving AI conversation threads to local files or remote servers. This tool enables you to preserve, update, search, and resume your conversations with AI applications like Claude, ChatGPT, and others.
+An MCP (Model Context Protocol) server for saving AI conversation threads to local files or remote servers. This tool enables you to preserve, update, search, and resume your conversations with AI applications like Claude, ChatGPT, and others. Thread MCP is espcially helpful if you plan to share/reproduce your AI conversation between different AI clients, or with other people.
 
 ## Features
 
@@ -30,19 +30,6 @@ An MCP (Model Context Protocol) server for saving AI conversation threads to loc
 ## Demo
 
 ![thread-mcp demo](demo/demo.gif)
-
-The demo connects to the MCP server via stdio, then walks through saving, searching, resuming, updating, and deleting conversation threads. To run it locally:
-
-```bash
-npm run build
-node --import tsx demo/demo.ts
-```
-
-To record the GIF (requires [VHS](https://github.com/charmbracelet/vhs)):
-
-```bash
-vhs demo/demo.tape
-```
 
 ## Installation
 

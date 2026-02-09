@@ -10,14 +10,17 @@ Set Width 1000
 Set Height 700
 Set Padding 20
 Set Theme "Catppuccin Mocha"
-Set TypingSpeed 50ms
+Set TypingSpeed 0ms
 Set PlaybackSpeed 1
 
-Sleep 500ms
-
+# Hide the command entry — recording starts when script output appears
+Hide
 Type "node --import tsx demo/demo.ts"
 Enter
+Sleep 2s
+Show
 
-Sleep 32s
+# ~62s script runtime (minus 2s hidden startup) + buffer
+Sleep 63s
 
 Sleep 2s

@@ -59,7 +59,7 @@ function pause(ms: number) {
 // Simulate LLM "thinking" before calling a tool
 async function thinking(action: string) {
   process.stdout.write(`  ${DIM}⏳ ${action}${RESET}`);
-  await pause(800);
+  await pause(1000);
   process.stdout.write("\r\x1b[2K"); // clear line
 }
 
@@ -83,7 +83,7 @@ async function main() {
     `${BOLD}${MAGENTA}  └──────────────────────────────────────────────┘${RESET}`,
   );
 
-  await pause(1500);
+  await pause(4000);
 
   // ── 1. Connect ─────────────────────────────────────────────────────────────
 
@@ -114,7 +114,7 @@ async function main() {
     console.log(`    ${YELLOW}${tool.name}${RESET}`);
   }
 
-  await pause(1500);
+  await pause(4000);
 
   // ── 2. save_thread ─────────────────────────────────────────────────────────
 
@@ -159,7 +159,7 @@ async function main() {
   info("Messages", String(save1.messageCount));
   info("Tags", "react, hooks, websocket, debugging");
 
-  await pause(1200);
+  await pause(4000);
 
   log("Saving a Python async conversation (JSON)…");
   await thinking("Calling save_thread…");
@@ -194,7 +194,7 @@ async function main() {
   info("Title", `"${save2.title}"`);
   info("Format", save2.format);
 
-  await pause(1500);
+  await pause(4000);
 
   // ── 3. find_threads ────────────────────────────────────────────────────────
 
@@ -227,7 +227,7 @@ async function main() {
     }
   }
 
-  await pause(1200);
+  await pause(4000);
 
   log("Listing all saved threads…");
   await thinking("Calling find_threads…");
@@ -246,7 +246,7 @@ async function main() {
     );
   }
 
-  await pause(1500);
+  await pause(4000);
 
   // ── 4. resume_thread ───────────────────────────────────────────────────────
 
@@ -273,7 +273,7 @@ async function main() {
   }
   console.log(`    ${DIM}…${RESET}`);
 
-  await pause(2000);
+  await pause(5000);
 
   // ── 5. update_thread ───────────────────────────────────────────────────────
 
@@ -309,7 +309,7 @@ async function main() {
   info("Messages added", String(updated.messagesAdded));
   info("Total messages now", String(updated.messageCount));
 
-  await pause(1500);
+  await pause(4000);
 
   // ── 6. delete_thread ───────────────────────────────────────────────────────
 
@@ -329,9 +329,10 @@ async function main() {
   );
 
   log(`${GREEN}Deleted!${RESET}  "${deleted.title}"`);
-  await pause(600);
+  await pause(1000);
 
   log("Confirming deletion…");
+  await pause(1000);
   const confirm = parseResult(
     await client.callTool({
       name: "find_threads",
@@ -340,14 +341,14 @@ async function main() {
   );
   info("Remaining threads", String(confirm.totalResults));
 
-  await pause(1500);
+  await pause(3000);
 
   // ── 7. Show the file on disk ───────────────────────────────────────────────
 
   header(7, "Saved file on disk");
 
   log(`Reading the markdown file…`);
-  await pause(400);
+  await pause(1000);
   console.log();
 
   const fileContent = await readFile(save1.filePath, "utf-8");
@@ -355,7 +356,7 @@ async function main() {
     console.log(`  ${DIM}│${RESET} ${line}`);
   }
 
-  await pause(1500);
+  await pause(3000);
 
   // ── Done ───────────────────────────────────────────────────────────────────
 
