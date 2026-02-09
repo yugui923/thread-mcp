@@ -1,6 +1,6 @@
 {
   "name": "thread-mcp",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "MCP server for saving AI conversation threads to local files or remote servers",
   "type": "module",
   "main": "dist/index.js",
