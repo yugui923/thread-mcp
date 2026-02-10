@@ -45,19 +45,39 @@ describe("MCP Server E2E Tests (Stdio Transport)", () => {
     await mkdir(testDir, { recursive: true });
 
     // Spawn the actual MCP server process
+    // Pass env explicitly: the MCP SDK's StdioClientTransport only inherits
+    // a minimal set of env vars by default (HOME, PATH, etc.), which can
+    // cause the server to crash in CI environments that need additional vars.
     transport = new StdioClientTransport({
       command: "node",
       args: ["dist/index.js"],
+      env: process.env as Record<string, string>,
       cwd: process.cwd(),
       stderr: "pipe",
     });
+
+    // Capture stderr for debugging server crashes
+    let serverStderr = "";
+    if (transport.stderr) {
+      transport.stderr.on("data", (chunk: Buffer) => {
+        serverStderr += chunk.toString();
+      });
+    }
 
     client = new Client(
       { name: "e2e-test-client", version: "1.0.0" },
       { capabilities: {} },
     );
 
-    await client.connect(transport);
+    try {
+      await client.connect(transport);
+    } catch (error) {
+      // Log server stderr to help debug CI failures
+      if (serverStderr) {
+        console.error("Server stderr output:", serverStderr);
+      }
+      throw error;
+    }
   });
 
   afterAll(async () => {

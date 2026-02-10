@@ -225,8 +225,8 @@ interface StorageProvider {
 
 - Create feature branches from `main`
 - Write descriptive commit messages
-- Before each commit, run tests, lint, format checks, and security audit:
+- Before each commit and each push, run ESLint (linter) and Prettier (formatter), along with tests and security audit:
   ```bash
-  npm test && npm run lint && npm run format:check && npm audit --audit-level=high
+  npm run lint && npm run format:check && npm test && npm audit --audit-level=high
   ```
-- Fix any issues before committing (use `npm run format` to auto-fix formatting)
+- Fix any issues before committing or pushing (use `npm run format` to auto-fix formatting, `npm run lint` to check for lint errors)
