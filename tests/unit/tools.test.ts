@@ -45,6 +45,21 @@ describe("Tool Input Schemas", () => {
       // These still have schema defaults
       expect(result.includeMetadata).toBe(true);
       expect(result.includeTimestamps).toBe(true);
+      expect(result.autoSummarize).toBe(false);
+      expect(result.autoTag).toBe(false);
+    });
+
+    it("should accept autoSummarize and autoTag options", () => {
+      const input = {
+        title: "Test",
+        messages: [{ role: "user", content: "Hello" }],
+        autoSummarize: true,
+        autoTag: true,
+      };
+
+      const result = SaveThreadInputSchema.parse(input);
+      expect(result.autoSummarize).toBe(true);
+      expect(result.autoTag).toBe(true);
     });
 
     it("should accept remote destination with URL", () => {
@@ -119,6 +134,19 @@ describe("Tool Input Schemas", () => {
       });
       expect(result.mode).toBe("append");
       expect(result.deduplicate).toBe(true);
+      expect(result.autoSummarize).toBe(false);
+      expect(result.autoTag).toBe(false);
+    });
+
+    it("should accept autoSummarize and autoTag options", () => {
+      const result = UpdateThreadInputSchema.parse({
+        id: "test",
+        messages: [],
+        autoSummarize: true,
+        autoTag: true,
+      });
+      expect(result.autoSummarize).toBe(true);
+      expect(result.autoTag).toBe(true);
     });
   });
 

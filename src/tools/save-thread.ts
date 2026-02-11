@@ -39,6 +39,26 @@ export const SaveThreadInputSchema = z.object({
   tags: z.array(z.string()).optional().describe("Tags for categorization"),
   summary: z.string().optional().describe("Summary of the thread"),
 
+  // Auto-generation options (require MCP sampling support)
+  autoSummarize: z
+    .boolean()
+    .default(false)
+    .describe(
+      "Automatically generate a summary using the client's LLM via MCP sampling. " +
+        "Requires the client to support the MCP sampling capability (createMessage). " +
+        "Adds latency due to an LLM round-trip. Ignored if 'summary' is already provided. " +
+        "If your client does not support sampling, keep this false and provide a summary directly.",
+    ),
+  autoTag: z
+    .boolean()
+    .default(false)
+    .describe(
+      "Automatically generate tags using the client's LLM via MCP sampling. " +
+        "Requires the client to support the MCP sampling capability (createMessage). " +
+        "Adds latency due to an LLM round-trip. Ignored if 'tags' are already provided. " +
+        "If your client does not support sampling, keep this false and provide tags directly.",
+    ),
+
   // Local options
   outputDir: z
     .string()
@@ -152,7 +172,9 @@ export const saveThreadTool = {
   name: "save_thread",
   description:
     "Save a conversation thread to local storage or a remote server. " +
-    "Supports Markdown and JSON formats with rich metadata including tags, summary, and timestamps.",
+    "Supports Markdown and JSON formats with rich metadata including tags, summary, and timestamps. " +
+    "Supports optional auto-summarization and auto-tagging via MCP sampling " +
+    "(requires client sampling support — adds latency from an LLM round-trip).",
   inputSchema: SaveThreadInputSchema,
   handler: saveThread,
 };

@@ -18,6 +18,16 @@ import { findThreads } from "./tools/find-threads.js";
 import { updateThread } from "./tools/update-thread.js";
 import { deleteThread } from "./tools/delete-thread.js";
 import { resumeThread } from "./tools/resume-thread.js";
+import { generateSummary, generateTags } from "./sampling.js";
+import { createLocalStorage } from "./storage/local.js";
+import { createRemoteStorage } from "./storage/remote.js";
+import {
+  resolveSource,
+  resolveStorageDir,
+  resolveRemoteUrl,
+  resolveApiKey,
+  resolveHeaders,
+} from "./config.js";
 
 function zodToJsonSchema(schema: z.ZodType): Record<string, unknown> {
   if (schema instanceof z.ZodObject) {
@@ -166,17 +176,87 @@ export function createServer(): Server {
       let result: unknown;
 
       switch (name) {
-        case "save_thread":
-          result = await saveThread(saveThreadTool.inputSchema.parse(args));
+        case "save_thread": {
+          const saveInput = saveThreadTool.inputSchema.parse(args);
+
+          if (saveInput.autoSummarize && !saveInput.summary) {
+            try {
+              saveInput.summary = await generateSummary(server, saveInput.messages);
+            } catch {
+              // Sampling unavailable or failed — proceed without summary
+            }
+          }
+          if (saveInput.autoTag && !saveInput.tags?.length) {
+            try {
+              saveInput.tags = await generateTags(server, saveInput.messages);
+            } catch {
+              // Sampling unavailable or failed — proceed without tags
+            }
+          }
+
+          result = await saveThread(saveInput);
           break;
+        }
 
         case "find_threads":
           result = await findThreads(findThreadsTool.inputSchema.parse(args));
           break;
 
-        case "update_thread":
-          result = await updateThread(updateThreadTool.inputSchema.parse(args));
+        case "update_thread": {
+          const updateInput = updateThreadTool.inputSchema.parse(args);
+          const needsSampling =
+            (updateInput.autoSummarize && !updateInput.newSummary) ||
+            (updateInput.autoTag && !updateInput.newTags?.length);
+
+          if (needsSampling) {
+            // Fetch existing thread to combine all messages for sampling
+            const source = resolveSource(updateInput.source);
+            const storage =
+              source === "remote"
+                ? createRemoteStorage({
+                    url: resolveRemoteUrl(updateInput.remoteUrl)!,
+                    apiKey: resolveApiKey(updateInput.apiKey),
+                    headers: resolveHeaders(updateInput.headers),
+                  })
+                : createLocalStorage(resolveStorageDir(updateInput.outputDir));
+
+            let allMessages = updateInput.messages;
+            const threadId = updateInput.id;
+            if (threadId) {
+              const existing = await storage.get(threadId);
+              if (existing) {
+                allMessages = [...existing.messages, ...updateInput.messages];
+              }
+            } else if (updateInput.title) {
+              const allInfos = await storage.list();
+              for (const info of allInfos) {
+                const conv = await storage.get(info.id);
+                if (conv && conv.metadata.title === updateInput.title) {
+                  allMessages = [...conv.messages, ...updateInput.messages];
+                  break;
+                }
+              }
+            }
+
+            if (updateInput.autoSummarize && !updateInput.newSummary) {
+              try {
+                updateInput.newSummary = await generateSummary(server, allMessages);
+              } catch {
+                // Sampling unavailable or failed — proceed without summary
+              }
+            }
+            if (updateInput.autoTag && !updateInput.newTags?.length) {
+              try {
+                updateInput.newTags = await generateTags(server, allMessages);
+              } catch {
+                // Sampling unavailable or failed — proceed without tags
+              }
+            }
+          }
+
+          result = await updateThread(updateInput);
           break;
+        }
 
         case "delete_thread":
           result = await deleteThread(deleteThreadTool.inputSchema.parse(args));

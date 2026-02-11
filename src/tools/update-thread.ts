@@ -41,6 +41,26 @@ export const UpdateThreadInputSchema = z.object({
   newTags: z.array(z.string()).optional().describe("New tags (replaces existing)"),
   newSummary: z.string().optional().describe("New summary"),
 
+  // Auto-generation options (require MCP sampling support)
+  autoSummarize: z
+    .boolean()
+    .default(false)
+    .describe(
+      "Automatically generate a summary from all messages (existing + new) using the client's LLM via MCP sampling. " +
+        "Requires the client to support the MCP sampling capability (createMessage). " +
+        "Adds latency due to an LLM round-trip. Ignored if 'newSummary' is already provided. " +
+        "If your client does not support sampling, keep this false and provide newSummary directly.",
+    ),
+  autoTag: z
+    .boolean()
+    .default(false)
+    .describe(
+      "Automatically generate tags from all messages (existing + new) using the client's LLM via MCP sampling. " +
+        "Requires the client to support the MCP sampling capability (createMessage). " +
+        "Adds latency due to an LLM round-trip. Ignored if 'newTags' are already provided. " +
+        "If your client does not support sampling, keep this false and provide newTags directly.",
+    ),
+
   // Source - no default, falls back to env var
   source: z
     .enum(["local", "remote"])
@@ -221,7 +241,9 @@ export const updateThreadTool = {
   description:
     "Update an existing conversation thread. Can find by ID or title. " +
     "Use 'append' mode to add new messages (with automatic deduplication). " +
-    "Use 'replace' mode to overwrite all messages. Can also update title, tags, and summary.",
+    "Use 'replace' mode to overwrite all messages. Can also update title, tags, and summary. " +
+    "Supports optional auto-summarization and auto-tagging via MCP sampling " +
+    "(requires client sampling support — adds latency from an LLM round-trip).",
   inputSchema: UpdateThreadInputSchema,
   handler: updateThread,
 };
