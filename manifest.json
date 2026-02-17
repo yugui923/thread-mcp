@@ -2,7 +2,7 @@
   "manifest_version": "0.3",
   "name": "thread-mcp",
   "display_name": "Thread MCP",
-  "description": "Save, search, update, and resume AI conversation threads locally or remotely. Supports Markdown/JSON formats with rich metadata, smart search, and context-optimized resumption.",
+  "description": "thread-mcp is the Jupyter notebook for LLM, optimized for natural languages. Thread helps you share, reproduce, update, and resume LLM conversations across different LLM clients.",
   "version": "1.2.2",
   "author": {
     "name": "Yuri Gui",
