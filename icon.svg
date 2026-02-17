@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="blue" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#5B9BD5" />
+      <stop offset="100%" stop-color="#2E6BA6" />
+    </linearGradient>
+    <linearGradient id="gold" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#E8A317" />
+      <stop offset="100%" stop-color="#FFCE3A" />
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" rx="80" fill="#0F1419" />
+
+  <!--
+    Minimal: one ring, two halves, small gap between them.
+    Radius 150, stroke 44.
+    Each arc spans ~170° with 10° gaps at top and bottom.
+    
+    Gap angle: 8° each side = 16° total gaps
+    Each arc: (360-16)/2 = 172°
+    Circumference = 2π×150 ≈ 942.48
+    172° = 172/360 * 942.48 ≈ 450.07
+    8° gap = 8/360 * 942.48 ≈ 20.94
+    
+    Blue: left half (top-gap clockwise to bottom-gap) = 98° to 270°
+    Gold: right half (bottom-gap clockwise to top-gap) = 278° to 90°
+  -->
+
+  <!-- Blue arc: left half, from ~98° to ~262° -->
+  <!-- Start: 98° → (256+150*cos98, 256+150*sin98) = (256-20.9, 256+148.5) = (235.1, 404.5) -->
+  <!-- End: 262° → (256+150*cos262, 256+150*sin262) = (256-20.9, 256-148.5) = (235.1, 107.5) -->
+  <path d="
+    M 235.1 404.5
+    A 150 150 0 1 1 235.1 107.5
+  " fill="none" stroke="url(#blue)" stroke-width="44" stroke-linecap="round" />
+
+  <!-- Gold arc: right half, from ~278° to ~82° -->
+  <!-- Start: 278° → (256+150*cos278, 256+150*sin278) = (256+20.9, 256-148.5) = (276.9, 107.5) -->
+  <!-- End: 82° → (256+150*cos82, 256+150*sin82) = (256+20.9, 256+148.5) = (276.9, 404.5) -->
+  <path d="
+    M 276.9 107.5
+    A 150 150 0 1 1 276.9 404.5
+  " fill="none" stroke="url(#gold)" stroke-width="44" stroke-linecap="round" />
+
+  <!-- Single small dot at center -->
+  <circle cx="256" cy="256" r="8" fill="#FFCE3A" />
+</svg>
