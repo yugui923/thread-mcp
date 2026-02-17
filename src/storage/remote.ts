@@ -62,7 +62,9 @@ export class RemoteStorage implements StorageProvider {
     return {
       id: conversation.id,
       title: conversation.metadata.title,
-      remoteUrl: result.url || `${this.config.url}/conversations/${conversation.id}`,
+      remoteUrl:
+        result.url ||
+        `${this.config.url}/conversations/${encodeURIComponent(conversation.id)}`,
       format: options.format,
       savedAt: new Date().toISOString(),
       sourceApp: conversation.metadata.sourceApp,
@@ -88,10 +90,13 @@ export class RemoteStorage implements StorageProvider {
   }
 
   async get(id: string): Promise<Conversation | null> {
-    const response = await fetch(`${this.config.url}/conversations/${id}`, {
-      method: "GET",
-      headers: this.getHeaders(),
-    });
+    const response = await fetch(
+      `${this.config.url}/conversations/${encodeURIComponent(id)}`,
+      {
+        method: "GET",
+        headers: this.getHeaders(),
+      },
+    );
 
     if (response.status === 404) {
       return null;
@@ -118,10 +123,13 @@ export class RemoteStorage implements StorageProvider {
   }
 
   async delete(id: string): Promise<boolean> {
-    const response = await fetch(`${this.config.url}/conversations/${id}`, {
-      method: "DELETE",
-      headers: this.getHeaders(),
-    });
+    const response = await fetch(
+      `${this.config.url}/conversations/${encodeURIComponent(id)}`,
+      {
+        method: "DELETE",
+        headers: this.getHeaders(),
+      },
+    );
 
     if (response.status === 404) {
       return false;

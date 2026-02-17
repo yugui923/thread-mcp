@@ -10,6 +10,8 @@ import {
   resolveApiKey,
   resolveHeaders,
   resetConfigCache,
+  validateRemoteUrl,
+  validateStorageDir,
 } from "../../src/config.js";
 
 describe("Config Module", () => {
@@ -430,5 +432,147 @@ describe("Config Precedence", () => {
       delete process.env.THREAD_MCP_API_KEY;
       expect(resolveApiKey(undefined)).toBeUndefined();
     });
+  });
+});
+
+describe("validateRemoteUrl", () => {
+  it("should allow public HTTPS URLs", () => {
+    expect(() => validateRemoteUrl("https://api.example.com")).not.toThrow();
+    expect(() => validateRemoteUrl("https://my-server.com/api")).not.toThrow();
+  });
+
+  it("should allow public HTTP URLs", () => {
+    expect(() => validateRemoteUrl("http://api.example.com")).not.toThrow();
+  });
+
+  it("should reject invalid URLs", () => {
+    expect(() => validateRemoteUrl("not-a-url")).toThrow("Invalid remote URL");
+  });
+
+  it("should reject non-http(s) schemes", () => {
+    expect(() => validateRemoteUrl("ftp://example.com")).toThrow(
+      "only http: and https:",
+    );
+    expect(() => validateRemoteUrl("file:///etc/passwd")).toThrow(
+      "only http: and https:",
+    );
+  });
+
+  it("should block localhost", () => {
+    expect(() => validateRemoteUrl("http://localhost:8080")).toThrow(
+      "blocked hostname",
+    );
+    expect(() => validateRemoteUrl("https://localhost/api")).toThrow(
+      "blocked hostname",
+    );
+  });
+
+  it("should block .local and .internal hostnames", () => {
+    expect(() => validateRemoteUrl("http://myservice.local")).toThrow(
+      "blocked hostname",
+    );
+    expect(() => validateRemoteUrl("http://server.internal")).toThrow(
+      "blocked hostname",
+    );
+    expect(() => validateRemoteUrl("http://metadata.google.internal")).toThrow(
+      "blocked hostname",
+    );
+  });
+
+  it("should block private IPv4 addresses", () => {
+    expect(() => validateRemoteUrl("http://127.0.0.1")).toThrow("private/reserved");
+    expect(() => validateRemoteUrl("http://10.0.0.1")).toThrow("private/reserved");
+    expect(() => validateRemoteUrl("http://172.16.0.1")).toThrow("private/reserved");
+    expect(() => validateRemoteUrl("http://172.31.255.255")).toThrow(
+      "private/reserved",
+    );
+    expect(() => validateRemoteUrl("http://192.168.1.1")).toThrow("private/reserved");
+    expect(() => validateRemoteUrl("http://169.254.169.254")).toThrow(
+      "private/reserved",
+    );
+    expect(() => validateRemoteUrl("http://0.0.0.0")).toThrow("private/reserved");
+  });
+
+  it("should not block 172.x outside 16-31 range", () => {
+    expect(() => validateRemoteUrl("http://172.15.0.1")).not.toThrow();
+    expect(() => validateRemoteUrl("http://172.32.0.1")).not.toThrow();
+  });
+
+  it("should block private IPv6 addresses", () => {
+    expect(() => validateRemoteUrl("http://[::1]")).toThrow("private/reserved");
+    expect(() => validateRemoteUrl("http://[::]")).toThrow("private/reserved");
+  });
+
+  it("should be called by resolveRemoteUrl for tool params", () => {
+    expect(() => resolveRemoteUrl("http://127.0.0.1")).toThrow("private/reserved");
+  });
+
+  it("should not validate env vars in resolveRemoteUrl", () => {
+    const originalEnv = process.env;
+    process.env = { ...originalEnv, THREAD_MCP_REMOTE_URL: "http://127.0.0.1" };
+    resetConfigCache();
+
+    // undefined tool param falls through to env var without validation
+    expect(resolveRemoteUrl(undefined)).toBe("http://127.0.0.1");
+
+    process.env = originalEnv;
+    resetConfigCache();
+  });
+});
+
+describe("validateStorageDir", () => {
+  it("should allow normal directories", () => {
+    expect(() => validateStorageDir("/home/user/threads")).not.toThrow();
+    expect(() => validateStorageDir("/tmp/thread-mcp")).not.toThrow();
+    expect(() => validateStorageDir("/tool/path")).not.toThrow();
+    expect(() => validateStorageDir("/tool")).not.toThrow();
+  });
+
+  it("should block system directories", () => {
+    expect(() => validateStorageDir("/etc")).toThrow("system directory");
+    expect(() => validateStorageDir("/etc/cron.d")).toThrow("system directory");
+    expect(() => validateStorageDir("/var/log")).toThrow("system directory");
+    expect(() => validateStorageDir("/proc/self")).toThrow("system directory");
+    expect(() => validateStorageDir("/sys")).toThrow("system directory");
+    expect(() => validateStorageDir("/dev")).toThrow("system directory");
+    expect(() => validateStorageDir("/usr/bin")).toThrow("system directory");
+    expect(() => validateStorageDir("/usr/sbin")).toThrow("system directory");
+  });
+
+  it("should block sensitive dot-directories", () => {
+    expect(() => validateStorageDir("/home/user/.ssh")).toThrow("sensitive directory");
+    expect(() => validateStorageDir("/home/user/.ssh/keys")).toThrow(
+      "sensitive directory",
+    );
+    expect(() => validateStorageDir("/home/user/.gnupg")).toThrow(
+      "sensitive directory",
+    );
+    expect(() => validateStorageDir("/home/user/.aws")).toThrow("sensitive directory");
+    expect(() => validateStorageDir("/home/user/.config/systemd")).toThrow(
+      "sensitive directory",
+    );
+  });
+
+  it("should normalize traversal before checking", () => {
+    expect(() => validateStorageDir("/home/user/../../etc")).toThrow(
+      "system directory",
+    );
+    expect(() => validateStorageDir("/tmp/../etc/cron.d")).toThrow("system directory");
+  });
+
+  it("should be called by resolveStorageDir for tool params", () => {
+    expect(() => resolveStorageDir("/etc/cron.d")).toThrow("system directory");
+  });
+
+  it("should not validate env vars in resolveStorageDir", () => {
+    const originalEnv = process.env;
+    process.env = { ...originalEnv, THREAD_MCP_STORAGE_DIR: "/etc/cron.d" };
+    resetConfigCache();
+
+    // undefined tool param falls through to env var without validation
+    expect(resolveStorageDir(undefined)).toBe("/etc/cron.d");
+
+    process.env = originalEnv;
+    resetConfigCache();
   });
 });

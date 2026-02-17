@@ -453,6 +453,81 @@ describe("RemoteStorage", () => {
     });
   });
 
+  describe("URL encoding", () => {
+    it("should encode path traversal in get()", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ conversation: null }),
+      });
+
+      const storage = createRemoteStorage({
+        url: "https://example.com/api",
+      });
+
+      await storage.get("../admin");
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        "https://example.com/api/conversations/..%2Fadmin",
+        expect.objectContaining({ method: "GET" }),
+      );
+    });
+
+    it("should encode path traversal in delete()", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+      });
+
+      const storage = createRemoteStorage({
+        url: "https://example.com/api",
+      });
+
+      await storage.delete("../../other");
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        "https://example.com/api/conversations/..%2F..%2Fother",
+        expect.objectContaining({ method: "DELETE" }),
+      );
+    });
+
+    it("should encode id in save() fallback URL", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({}),
+      });
+
+      const storage = createRemoteStorage({
+        url: "https://example.com/api",
+      });
+
+      const conversation: Conversation = {
+        ...sampleConversation,
+        id: "../admin",
+      };
+
+      const result = await storage.save(conversation, defaultOptions);
+
+      expect(result.remoteUrl).toBe("https://example.com/api/conversations/..%2Fadmin");
+    });
+
+    it("should not alter alphanumeric-hyphen ids", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ conversation: sampleConversation }),
+      });
+
+      const storage = createRemoteStorage({
+        url: "https://example.com/api",
+      });
+
+      await storage.get("remote-test-123");
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        "https://example.com/api/conversations/remote-test-123",
+        expect.objectContaining({ method: "GET" }),
+      );
+    });
+  });
+
   describe("delete", () => {
     it("should DELETE a conversation", async () => {
       mockFetch.mockResolvedValueOnce({

@@ -17,7 +17,7 @@
 [license-img]: https://img.shields.io/github/license/yugui923/thread-mcp
 [license]: https://github.com/yugui923/thread-mcp/blob/main/LICENSE
 
-An MCP (Model Context Protocol) server for saving AI conversation threads to local files or remote servers. This tool enables you to preserve, update, search, and resume your conversations with AI applications like Claude, ChatGPT, and others. Thread MCP is espcially helpful if you plan to share/reproduce your AI conversation between different AI clients, or with other people.
+thread-mcp is the Jupyter notebook for LLM, optimized for natural languages. Thread helps you share, reproduce, update, and resume LLM conversations across different LLM clients.
 
 ## Features
 
@@ -148,6 +148,109 @@ Configuration values are resolved in this order (highest to lowest priority):
 - Relative paths (e.g., `./threads`) are resolved from the working directory where the MCP server is launched
 - `THREAD_MCP_REMOTE_HEADERS` must be valid JSON
 - Tool call parameters merge with (and override) environment variable headers
+
+## Usage Examples
+
+### Example 1: Save a conversation and resume it later
+
+> **User prompt:** "Save this conversation about our API redesign so I can pick it up tomorrow."
+
+Thread MCP calls `save_thread` with the conversation content:
+
+```json
+{
+  "title": "API Redesign Discussion",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Let's redesign the /users endpoint to support pagination."
+    },
+    {
+      "role": "assistant",
+      "content": "Good idea. I'd suggest cursor-based pagination with a default page size of 25..."
+    }
+  ],
+  "tags": ["api", "backend"],
+  "summary": "Planning cursor-based pagination for the /users endpoint"
+}
+```
+
+The next day, the user says: "Resume the API redesign conversation."
+
+Thread MCP calls `resume_thread`, which returns the full context — title, summary, tags, all messages, and a continuation hint — so the assistant can pick up exactly where you left off.
+
+### Example 2: Search across past conversations
+
+> **User prompt:** "Find my previous conversations about database migrations."
+
+Thread MCP calls `find_threads` with a search query:
+
+```json
+{
+  "query": "database migrations",
+  "includeContent": false
+}
+```
+
+**Expected output:**
+
+```json
+{
+  "totalResults": 2,
+  "threads": [
+    {
+      "title": "Postgres Migration Strategy",
+      "tags": ["database", "postgres"],
+      "summary": "Discussed zero-downtime migration approach for production DB",
+      "relevance": { "score": 85, "matchedFields": ["title", "content"] }
+    },
+    {
+      "title": "MongoDB to SQL Migration",
+      "tags": ["database", "migration"],
+      "summary": "Planned schema mapping from MongoDB collections to SQL tables",
+      "relevance": { "score": 72, "matchedFields": ["title", "tags"] }
+    }
+  ]
+}
+```
+
+The user can then resume either conversation by title or ID.
+
+### Example 3: Continue a multi-session conversation
+
+> **User prompt:** "Add today's follow-up to our onboarding flow discussion."
+
+Thread MCP calls `update_thread` to append the new messages to the existing thread:
+
+```json
+{
+  "title": "Onboarding Flow Redesign",
+  "messages": [
+    {
+      "role": "user",
+      "content": "We decided to add a progress bar. How should we implement it?"
+    },
+    {
+      "role": "assistant",
+      "content": "I'd recommend a stepper component with 4 stages: account, profile, preferences, confirmation..."
+    }
+  ]
+}
+```
+
+**Expected output:**
+
+```json
+{
+  "success": true,
+  "title": "Onboarding Flow Redesign",
+  "messageCount": 8,
+  "messagesAdded": 2,
+  "mode": "append"
+}
+```
+
+The new messages are appended with automatic deduplication, so even if a message was already saved, it won't be duplicated.
 
 ## Available Tools
 
