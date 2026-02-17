@@ -8,25 +8,38 @@
     "name": "Yuri Gui",
     "url": "https://github.com/yugui923"
   },
-  "repository": "https://github.com/yugui923/thread-mcp",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yugui923/thread-mcp.git"
+  },
+  "homepage": "https://github.com/yugui923/thread-mcp#readme",
+  "support": "https://github.com/yugui923/thread-mcp/issues",
   "license": "GPL-3.0",
+  "icon": "icon.png",
   "server": {
     "type": "node",
     "entry_point": "dist/index.js",
-    "transport": "stdio"
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/dist/index.js"],
+      "env": {
+        "THREAD_MCP_STORAGE_DIR": "${user_config.storage_dir}"
+      }
+    }
   },
   "user_config": {
     "storage_dir": {
       "type": "directory",
+      "title": "Storage Directory",
       "description": "Directory for storing conversation threads",
-      "env_var": "THREAD_MCP_STORAGE_DIR",
-      "default": "~/.thread-mcp"
+      "default": "${HOME}/.thread-mcp",
+      "required": false
     }
   },
   "privacy_policies": [],
   "compatibility": {
     "platforms": ["darwin", "win32", "linux"],
-    "runtime": {
+    "runtimes": {
       "node": ">=22"
     }
   },

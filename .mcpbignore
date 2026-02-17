@@ -1,0 +1,40 @@
+# Source code (dist/ has the compiled output)
+src/
+
+# Tests
+tests/
+vitest.config.ts
+coverage/
+
+# Build/config files
+eslint.config.js
+tsconfig.json
+codecov.yml
+ruff.toml
+jsr.json
+
+# Documentation extras
+docs/
+CLAUDE.md
+SECURITY.md
+claude_desktop_config.json.example
+
+# Demo files
+demo/
+
+# Scripts
+scripts/
+
+# Icon source
+icon.svg
+
+# Dev environment
+.devcontainer/
+.github/
+.copier-answers.yml
+.gitattributes
+.mcp.json
+.mcp.json.example
+
+# Previous bundle
+*.mcpb
