@@ -113,4 +113,10 @@ export const deleteThreadTool = {
     "Delete a saved conversation thread. Can find by ID or exact title match.",
   inputSchema: DeleteThreadInputSchema,
   handler: deleteThread,
+  annotations: {
+    readOnlyHint: false,
+    destructiveHint: true,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
 };

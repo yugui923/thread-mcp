@@ -246,4 +246,10 @@ export const updateThreadTool = {
     "(requires client sampling support — adds latency from an LLM round-trip).",
   inputSchema: UpdateThreadInputSchema,
   handler: updateThread,
+  annotations: {
+    readOnlyHint: false,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
 };

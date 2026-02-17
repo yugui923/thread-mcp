@@ -279,4 +279,10 @@ export const resumeThreadTool = {
     "Use this to pick up previous conversations.",
   inputSchema: ResumeThreadInputSchema,
   handler: resumeThread,
+  annotations: {
+    readOnlyHint: true,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
 };

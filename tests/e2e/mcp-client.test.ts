@@ -103,6 +103,22 @@ describe("MCP Server E2E Tests (Stdio Transport)", () => {
       expect(toolNames).toContain("resume_thread");
     });
 
+    it("should expose annotations for all tools over the MCP protocol", async () => {
+      const result = await client.listTools();
+
+      for (const tool of result.tools) {
+        expect(tool.annotations).toBeDefined();
+        expect(typeof tool.annotations!.readOnlyHint).toBe("boolean");
+        expect(typeof tool.annotations!.destructiveHint).toBe("boolean");
+      }
+
+      const deleteTool = result.tools.find((t) => t.name === "delete_thread");
+      expect(deleteTool!.annotations!.destructiveHint).toBe(true);
+
+      const findTool = result.tools.find((t) => t.name === "find_threads");
+      expect(findTool!.annotations!.readOnlyHint).toBe(true);
+    });
+
     it("should have descriptions and input schemas for all tools", async () => {
       const result = await client.listTools();
 

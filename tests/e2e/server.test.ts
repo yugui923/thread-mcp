@@ -40,6 +40,54 @@ describe("MCP Server", () => {
       expect(toolNames).toContain("resume_thread");
     });
 
+    it("should have annotations with readOnlyHint and destructiveHint for all tools", async () => {
+      const handler = (
+        server as unknown as {
+          _requestHandlers: Map<string, (...args: unknown[]) => unknown>;
+        }
+      )._requestHandlers.get("tools/list");
+
+      const response = await handler!({ method: "tools/list", params: {} }, {});
+
+      for (const tool of response.tools) {
+        expect(tool.annotations).toBeDefined();
+        expect(typeof tool.annotations.readOnlyHint).toBe("boolean");
+        expect(typeof tool.annotations.destructiveHint).toBe("boolean");
+      }
+    });
+
+    it("should mark delete_thread as destructive", async () => {
+      const handler = (
+        server as unknown as {
+          _requestHandlers: Map<string, (...args: unknown[]) => unknown>;
+        }
+      )._requestHandlers.get("tools/list");
+
+      const response = await handler!({ method: "tools/list", params: {} }, {});
+      const deleteTool = response.tools.find(
+        (t: { name: string }) => t.name === "delete_thread",
+      );
+
+      expect(deleteTool.annotations.destructiveHint).toBe(true);
+      expect(deleteTool.annotations.readOnlyHint).toBe(false);
+    });
+
+    it("should mark find_threads as read-only", async () => {
+      const handler = (
+        server as unknown as {
+          _requestHandlers: Map<string, (...args: unknown[]) => unknown>;
+        }
+      )._requestHandlers.get("tools/list");
+
+      const response = await handler!({ method: "tools/list", params: {} }, {});
+      const findTool = response.tools.find(
+        (t: { name: string }) => t.name === "find_threads",
+      );
+
+      expect(findTool.annotations.readOnlyHint).toBe(true);
+      expect(findTool.annotations.destructiveHint).toBe(false);
+    });
+
     it("should have descriptions for all tools", async () => {
       const handler = (
         server as unknown as {

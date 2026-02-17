@@ -407,4 +407,10 @@ export const findThreadsTool = {
     "Use includeContent=true to load full conversations.",
   inputSchema: FindThreadsInputSchema,
   handler: findThreads,
+  annotations: {
+    readOnlyHint: true,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
 };

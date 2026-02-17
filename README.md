@@ -579,6 +579,16 @@ thread-mcp/
 └── vitest.config.ts
 ```
 
+## Privacy
+
+Thread MCP is designed with privacy in mind:
+
+- **Local by default** - All conversation data is stored on your local filesystem. No data is sent to external services unless you explicitly configure remote storage.
+- **Remote storage is opt-in** - Remote storage requires you to provide your own server URL (`THREAD_MCP_REMOTE_URL`). You control where your data goes.
+- **Auto-summarize/auto-tag uses MCP sampling** - When enabled, these features use the MCP sampling capability, meaning your client's own LLM generates the summaries and tags. No additional external API calls are made by the server.
+- **No telemetry or analytics** - Thread MCP does not collect usage data, send telemetry, or phone home in any way.
+- **No third-party data sharing** - Your conversation data is never shared with third parties.
+
 ## License
 
 GPL-3.0

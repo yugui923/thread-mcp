@@ -34,6 +34,10 @@ npm-debug.log*
 yarn.lock
 pnpm-lock.yaml
 
+# MCPB bundle artifacts
+.mcpb-stage/
+*.mcpb
+
 # MCP configuration files (may contain sensitive data)
 # Use *.example files as templates
 mcp.json

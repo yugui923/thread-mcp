@@ -1,3 +1,5 @@
+import { createRequire } from "node:module";
+
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
@@ -5,6 +7,9 @@ import {
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
+
+const require = createRequire(import.meta.url);
+const { version } = require("../package.json") as { version: string };
 
 import {
   saveThreadTool,
@@ -128,7 +133,7 @@ export function createServer(): Server {
   const server = new Server(
     {
       name: "thread-mcp",
-      version: "1.0.0",
+      version,
     },
     {
       capabilities: {
@@ -144,26 +149,31 @@ export function createServer(): Server {
           name: saveThreadTool.name,
           description: saveThreadTool.description,
           inputSchema: zodToJsonSchema(saveThreadTool.inputSchema),
+          annotations: saveThreadTool.annotations,
         },
         {
           name: findThreadsTool.name,
           description: findThreadsTool.description,
           inputSchema: zodToJsonSchema(findThreadsTool.inputSchema),
+          annotations: findThreadsTool.annotations,
         },
         {
           name: updateThreadTool.name,
           description: updateThreadTool.description,
           inputSchema: zodToJsonSchema(updateThreadTool.inputSchema),
+          annotations: updateThreadTool.annotations,
         },
         {
           name: deleteThreadTool.name,
           description: deleteThreadTool.description,
           inputSchema: zodToJsonSchema(deleteThreadTool.inputSchema),
+          annotations: deleteThreadTool.annotations,
         },
         {
           name: resumeThreadTool.name,
           description: resumeThreadTool.description,
           inputSchema: zodToJsonSchema(resumeThreadTool.inputSchema),
+          annotations: resumeThreadTool.annotations,
         },
       ],
     };

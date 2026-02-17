@@ -177,4 +177,10 @@ export const saveThreadTool = {
     "(requires client sampling support — adds latency from an LLM round-trip).",
   inputSchema: SaveThreadInputSchema,
   handler: saveThread,
+  annotations: {
+    readOnlyHint: false,
+    destructiveHint: false,
+    idempotentHint: false,
+    openWorldHint: false,
+  },
 };

@@ -1,0 +1,55 @@
+{
+  "manifest_version": "0.3",
+  "name": "thread-mcp",
+  "display_name": "Thread MCP",
+  "description": "Save, search, update, and resume AI conversation threads locally or remotely. Supports Markdown/JSON formats with rich metadata, smart search, and context-optimized resumption.",
+  "version": "1.2.2",
+  "author": {
+    "name": "Yuri Gui",
+    "url": "https://github.com/yugui923"
+  },
+  "repository": "https://github.com/yugui923/thread-mcp",
+  "license": "GPL-3.0",
+  "server": {
+    "type": "node",
+    "entry_point": "dist/index.js",
+    "transport": "stdio"
+  },
+  "user_config": {
+    "storage_dir": {
+      "type": "directory",
+      "description": "Directory for storing conversation threads",
+      "env_var": "THREAD_MCP_STORAGE_DIR",
+      "default": "~/.thread-mcp"
+    }
+  },
+  "privacy_policies": [],
+  "compatibility": {
+    "platforms": ["darwin", "win32", "linux"],
+    "runtime": {
+      "node": ">=22"
+    }
+  },
+  "tools": [
+    {
+      "name": "save_thread",
+      "description": "Save a conversation thread to local storage or a remote server"
+    },
+    {
+      "name": "find_threads",
+      "description": "Find saved conversation threads by ID, title, query, or filters"
+    },
+    {
+      "name": "update_thread",
+      "description": "Update an existing conversation thread with new messages or metadata"
+    },
+    {
+      "name": "delete_thread",
+      "description": "Delete a saved conversation thread by ID or title"
+    },
+    {
+      "name": "resume_thread",
+      "description": "Load a saved conversation thread to continue where you left off"
+    }
+  ]
+}
