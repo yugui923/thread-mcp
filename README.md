@@ -259,19 +259,20 @@ The new messages are appended with automatic deduplication, so even if a message
 Save a new conversation thread to local storage or a remote server.
 
 **Parameters:**
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `title` | string | Yes | - | Title for the thread |
-| `messages` | array | Yes | - | Array of messages with `role` and `content` |
-| `destination` | string | No | `"local"` | Where to save: `"local"` or `"remote"` |
-| `format` | string | No | `"markdown"` | Output format: `"markdown"` or `"json"` |
-| `sourceApp` | string | No | - | Name of the AI application |
-| `tags` | string[] | No | - | Tags for categorization |
-| `summary` | string | No | - | Summary of the conversation |
-| `outputDir` | string | No | `~/.thread-mcp` | Custom directory for local storage |
-| `remoteUrl` | string | Conditional | - | Required when destination is `"remote"` |
-| `apiKey` | string | No | - | API key for remote authentication |
-| `headers` | object | No | - | Additional HTTP headers for remote |
+
+| Parameter     | Type     | Required    | Default         | Description                                 |
+| ------------- | -------- | ----------- | --------------- | ------------------------------------------- |
+| `title`       | string   | Yes         | -               | Title for the thread                        |
+| `messages`    | array    | Yes         | -               | Array of messages with `role` and `content` |
+| `destination` | string   | No          | `"local"`       | Where to save: `"local"` or `"remote"`      |
+| `format`      | string   | No          | `"markdown"`    | Output format: `"markdown"` or `"json"`     |
+| `sourceApp`   | string   | No          | -               | Name of the AI application                  |
+| `tags`        | string[] | No          | -               | Tags for categorization                     |
+| `summary`     | string   | No          | -               | Summary of the conversation                 |
+| `outputDir`   | string   | No          | `~/.thread-mcp` | Custom directory for local storage          |
+| `remoteUrl`   | string   | Conditional | -               | Required when destination is `"remote"`     |
+| `apiKey`      | string   | No          | -               | API key for remote authentication           |
+| `headers`     | object   | No          | -               | Additional HTTP headers for remote          |
 
 **Example:**
 
@@ -295,20 +296,21 @@ Save a new conversation thread to local storage or a remote server.
 Find saved threads by ID, title, search query, or list all threads. Supports filtering and relevance scoring.
 
 **Parameters:**
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `id` | string | No | - | Get a specific thread by ID (returns full details) |
-| `title` | string | No | - | Find thread by exact title match |
-| `query` | string | No | - | Search in titles, summaries, and content |
-| `tags` | string[] | No | - | Filter by tags (must have ALL specified) |
-| `sourceApp` | string | No | - | Filter by source application |
-| `dateFrom` | string | No | - | Filter by creation date (ISO format) |
-| `dateTo` | string | No | - | Filter by creation date (ISO format) |
-| `includeMessages` | boolean | No | `false` | Include full message content |
-| `limit` | number | No | `50` | Maximum results to return |
-| `source` | string | No | `"local"` | Source: `"local"` or `"remote"` |
-| `outputDir` | string | No | `~/.thread-mcp` | Directory for local storage |
-| `remoteUrl` | string | Conditional | - | Required when source is `"remote"` |
+
+| Parameter         | Type     | Required    | Default         | Description                                        |
+| ----------------- | -------- | ----------- | --------------- | -------------------------------------------------- |
+| `id`              | string   | No          | -               | Get a specific thread by ID (returns full details) |
+| `title`           | string   | No          | -               | Find thread by exact title match                   |
+| `query`           | string   | No          | -               | Search in titles, summaries, and content           |
+| `tags`            | string[] | No          | -               | Filter by tags (must have ALL specified)           |
+| `sourceApp`       | string   | No          | -               | Filter by source application                       |
+| `dateFrom`        | string   | No          | -               | Filter by creation date (ISO format)               |
+| `dateTo`          | string   | No          | -               | Filter by creation date (ISO format)               |
+| `includeMessages` | boolean  | No          | `false`         | Include full message content                       |
+| `limit`           | number   | No          | `50`            | Maximum results to return                          |
+| `source`          | string   | No          | `"local"`       | Source: `"local"` or `"remote"`                    |
+| `outputDir`       | string   | No          | `~/.thread-mcp` | Directory for local storage                        |
+| `remoteUrl`       | string   | Conditional | -               | Required when source is `"remote"`                 |
 
 **Examples:**
 
@@ -369,19 +371,20 @@ Search with filters:
 Update an existing thread by appending new messages. Find thread by ID or title.
 
 **Parameters:**
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `id` | string | Conditional | - | Thread ID (use this OR title) |
-| `title` | string | Conditional | - | Find thread by exact title (use this OR id) |
-| `messages` | array | Yes | - | New messages to add |
-| `mode` | string | No | `"append"` | `"append"` to add messages, `"replace"` to overwrite |
-| `deduplicateMessages` | boolean | No | `true` | Skip duplicate messages |
-| `newTitle` | string | No | - | Update the thread title |
-| `tags` | string[] | No | - | Update tags |
-| `summary` | string | No | - | Update summary |
-| `source` | string | No | `"local"` | Source: `"local"` or `"remote"` |
-| `outputDir` | string | No | `~/.thread-mcp` | Directory for local storage |
-| `remoteUrl` | string | Conditional | - | Required when source is `"remote"` |
+
+| Parameter             | Type     | Required    | Default         | Description                                          |
+| --------------------- | -------- | ----------- | --------------- | ---------------------------------------------------- |
+| `id`                  | string   | Conditional | -               | Thread ID (use this OR title)                        |
+| `title`               | string   | Conditional | -               | Find thread by exact title (use this OR id)          |
+| `messages`            | array    | Yes         | -               | New messages to add                                  |
+| `mode`                | string   | No          | `"append"`      | `"append"` to add messages, `"replace"` to overwrite |
+| `deduplicateMessages` | boolean  | No          | `true`          | Skip duplicate messages                              |
+| `newTitle`            | string   | No          | -               | Update the thread title                              |
+| `tags`                | string[] | No          | -               | Update tags                                          |
+| `summary`             | string   | No          | -               | Update summary                                       |
+| `source`              | string   | No          | `"local"`       | Source: `"local"` or `"remote"`                      |
+| `outputDir`           | string   | No          | `~/.thread-mcp` | Directory for local storage                          |
+| `remoteUrl`           | string   | Conditional | -               | Required when source is `"remote"`                   |
 
 **Example - Append by title:**
 
@@ -413,13 +416,14 @@ Update an existing thread by appending new messages. Find thread by ID or title.
 Delete a saved thread by ID or title.
 
 **Parameters:**
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `id` | string | Conditional | - | Thread ID (use this OR title) |
-| `title` | string | Conditional | - | Find thread by exact title (use this OR id) |
-| `source` | string | No | `"local"` | Source: `"local"` or `"remote"` |
-| `outputDir` | string | No | `~/.thread-mcp` | Directory for local storage |
-| `remoteUrl` | string | Conditional | - | Required when source is `"remote"` |
+
+| Parameter   | Type   | Required    | Default         | Description                                 |
+| ----------- | ------ | ----------- | --------------- | ------------------------------------------- |
+| `id`        | string | Conditional | -               | Thread ID (use this OR title)               |
+| `title`     | string | Conditional | -               | Find thread by exact title (use this OR id) |
+| `source`    | string | No          | `"local"`       | Source: `"local"` or `"remote"`             |
+| `outputDir` | string | No          | `~/.thread-mcp` | Directory for local storage                 |
+| `remoteUrl` | string | Conditional | -               | Required when source is `"remote"`          |
 
 **Examples:**
 
@@ -442,17 +446,18 @@ Delete a saved thread by ID or title.
 Load a saved thread to continue the conversation. Returns context optimized for AI continuation.
 
 **Parameters:**
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `id` | string | Conditional | - | Thread ID |
-| `title` | string | Conditional | - | Find by exact title match |
-| `titleContains` | string | Conditional | - | Find most recent thread with title containing this |
-| `format` | string | No | `"structured"` | Output format (see below) |
-| `maxMessages` | number | No | all | Limit to last N messages |
-| `includeSummary` | boolean | No | `true` | Include thread summary |
-| `source` | string | No | `"local"` | Source: `"local"` or `"remote"` |
-| `outputDir` | string | No | `~/.thread-mcp` | Directory for local storage |
-| `remoteUrl` | string | Conditional | - | Required when source is `"remote"` |
+
+| Parameter        | Type    | Required    | Default         | Description                                        |
+| ---------------- | ------- | ----------- | --------------- | -------------------------------------------------- |
+| `id`             | string  | Conditional | -               | Thread ID                                          |
+| `title`          | string  | Conditional | -               | Find by exact title match                          |
+| `titleContains`  | string  | Conditional | -               | Find most recent thread with title containing this |
+| `format`         | string  | No          | `"structured"`  | Output format (see below)                          |
+| `maxMessages`    | number  | No          | all             | Limit to last N messages                           |
+| `includeSummary` | boolean | No          | `true`          | Include thread summary                             |
+| `source`         | string  | No          | `"local"`       | Source: `"local"` or `"remote"`                    |
+| `outputDir`      | string  | No          | `~/.thread-mcp` | Directory for local storage                        |
+| `remoteUrl`      | string  | Conditional | -               | Required when source is `"remote"`                 |
 
 **Output Formats:**
 
