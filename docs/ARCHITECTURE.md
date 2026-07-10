@@ -116,9 +116,7 @@ export const MyToolInputSchema = z.object({
 // 2. Implement handler function
 export async function myTool(input: MyToolInput) {
   // Business logic
-  return {
-    /* result */
-  };
+  return {/* result */};
 }
 
 // 3. Export tool definition
@@ -353,9 +351,7 @@ let cachedConfig: ServerConfig | null = null;
 
 export function getServerConfig(): ServerConfig {
   if (cachedConfig) return cachedConfig;
-  cachedConfig = {
-    /* read from env */
-  };
+  cachedConfig = {/* read from env */};
   return cachedConfig;
 }
 ```
