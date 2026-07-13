@@ -1,5 +1,5 @@
 # Yuri devcontainer docker-compose.yml
-# Last updated: 2025-02-04
+# Last updated: 2026-02-19
 
 # Used by VS Code Dev Containers extension
 
@@ -8,12 +8,18 @@ services:
     build:
       context: ..
       dockerfile: .devcontainer/Dockerfile
+    init: true
+    shm_size: "4gb"
+    hostname: "thread-mcp"
     volumes:
       - ..:/workspace
       - claude-code-data:/home/vscode/.claude
+      - codex-data:/home/vscode/.codex
     network_mode: host
     command: sleep infinity
 
 volumes:
   claude-code-data:
     name: thread-mcp-claude-code-data
+  codex-data:
+    name: thread-mcp-codex-data
